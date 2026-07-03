@@ -267,14 +267,17 @@ const App = (function() {
   function buildRdCollabItems(phase) {
     var collab = phase.collab || [];
     if (collab.length === 0) return '<div style="padding:12px;color:var(--c-gray-400);font-size:12px;">暂无协同事项</div>';
+    var statusOpts = '<option value="">— 选择 —</option><option value="pending">⏳ 待开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已完成</option>';
     return '<table class="delivery-table" style="font-size:12px;">'
       + '<thead><tr><th>协同事项</th><th>负责人</th><th>状态</th></tr></thead>'
       + '<tbody>'
       + collab.map(function(item) {
+          var sVal = item.status || 'pending';
+          var sColor = sVal==='done'?'#16a34a':sVal==='progress'?'#2563eb':'#d97706';
           return `<tr>
             <td>${item.item}</td>
-            <td>${item.owner}</td>
-            <td><span class="badge badge-${item.status==='pending'?'warning':item.status==='warn'?'danger':item.status==='info'?'info':'success'}" style="font-size:10px;padding:1px 6px;border-radius:3px;">${item.status}</span></td>
+            <td><input type="text" value="${item.owner||''}" placeholder="输入姓名" style="width:100%;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;" /></td>
+            <td><select onchange="this.style.color=this.options[this.selectedIndex].style.color||'#d97706'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:${sColor};box-sizing:border-box;">${statusOpts}<option value="${sVal}" selected style="color:${sColor}">${sVal==='pending'?'⏳ 待开始':sVal==='progress'?'◉ 进行中':'✓ 已完成'}</option></select></td>
           </tr>`;
         }).join('')
       + '</tbody></table>';
@@ -3263,10 +3266,15 @@ const App = (function() {
   }
 
   function buildDeliveryTableCard(title, items) {
+    var statusOptions = '<option value="">— 选择 —</option><option value="pending">⏳ 待开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已完成</option><option value="processing">⚠ 处理中</option><option value="info">ℹ️ 信息</option>';
     return `<div class="card"><div class="card-header">${title}</div><div class="card-body scrollable" style="padding:0;">
       <table class="delivery-table"><thead><tr><th>协同事项</th><th>责任人</th><th>截止日期</th><th>状态</th></tr></thead><tbody>
-        ${items.map(it => `<tr><td>${it.item}</td><td>${it.owner||'-'}</td><td>${it.deadline||'-'}</td>
-        <td><span class="status-dot ${it.status==='warn'?'warn':(it.status==='info'?'pending':it.status)}"></span>${it.status==='warn'?'⚠ 待处理':(it.status==='info'?'ℹ 信息':'⏳ 待开始')}</td></tr>`).join('')}
+        ${items.map(function(it){
+          var sVal = it.status==='warn'?'processing':(it.status==='info'?'info':'pending');
+          var sColor = sVal==='done'?'#16a34a':sVal==='progress'?'#2563eb':sVal==='processing'?'#d97706':sVal==='info'?'#3b82f6':'#d97706';
+          return `<tr><td>${it.item}</td><td><input type="text" value="${it.owner||''}" placeholder="输入姓名" style="width:100%;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;" /></td><td>${it.deadline||'-'}</td>
+          <td><select onchange="this.style.color=this.options[this.selectedIndex].style.color||'#d97706'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:${sColor};box-sizing:border-box;">${statusOptions}<option value="${sVal}" selected style="color:${sColor}">${sVal==='pending'?'⏳ 待开始':sVal==='progress'?'◉ 进行中':sVal==='done'?'✓ 已完成':sVal==='processing'?'⚠ 处理中':'ℹ️ 信息'}</option></select></td></tr>`;
+        }).join('')}
       </tbody></table></div></div>`;
   }
 
