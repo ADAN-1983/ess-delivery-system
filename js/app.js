@@ -2089,43 +2089,43 @@ const App = (function() {
             <span style="font-size:11px;color:#94a3b8;font-weight:400;">共5项跟踪任务</span>
           </div>
           <div class="card-body" style="padding:0;overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;">
               <thead><tr style="background:#f1f5f9;">
-                <th style="padding:9px 12px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">调查类型</th>
-                <th style="padding:9px 12px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:90px;">负责人</th>
-                <th style="padding:9px 12px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:100px;">最迟计划</th>
-                <th style="padding:9px 12px;text-align:center;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:80px;">状态</th>
+                <th style="padding:9px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:32%;">调查类型</th>
+                <th style="padding:9px 8px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:18%;">负责人</th>
+                <th style="padding:9px 8px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:22%;">最迟计划</th>
+                <th style="padding:9px 8px;text-align:center;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:28%;">状态</th>
               </tr></thead>
               <tbody>
                 <tr style="border-bottom:1px solid #f1f5f9;background:#fefce8;">
-                  <td style="padding:9px 12px;font-weight:500;color:#854d0e;">📝 问卷调查</td>
-                  <td style="padding:9px 12px;color:#64748b;">负责人</td>
-                  <td style="padding:9px 12px;color:#64748b;">最晚完成</td>
-                  <td style="padding:9px 12px;text-align:center;"><label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#d97706;"><input type="checkbox"><span>☐ 未开始</span></label></td>
+                  <td style="padding:9px 10px;font-weight:500;color:#854d0e;white-space:nowrap;">📝 问卷调查</td>
+                  <td style="padding:5px 6px;"><input type="text" value="郑丹" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;" placeholder="输入姓名"></td>
+                  <td style="padding:9px 8px;color:#64748b;white-space:nowrap;">2026Q2完成</td>
+                  <td style="padding:5px 6px;text-align:center;"><select onchange="this.style.color=this.value==='done'?'#16a34a':this.value==='progress'?'#2563eb':'#94a3b8'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:#d97706;box-sizing:border-box;"><option value="">— 选择状态 —</option><option value="pending">☐ 未开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已结束</option></select></td>
                 </tr>
                 <tr style="border-bottom:1px solid #f1f5f9;">
-                  <td style="padding:9px 12px;font-weight:500;color:#475569;">客观统计&gt;1分</td>
-                  <td style="padding:9px 12px;color:#64748b;">质量</td>
-                  <td style="padding:9px 12px;color:#64748b;">每季一次</td>
-                  <td style="padding:9px 12px;text-align:center;"><label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#94a3b8;"><input type="checkbox"><span>☐ 未开始</span></label></td>
+                  <td style="padding:9px 10px;font-weight:500;color:#475569;white-space:nowrap;">客观统计&gt;1分</td>
+                  <td style="padding:5px 6px;"><input type="text" value="质量" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;"></td>
+                  <td style="padding:9px 8px;color:#64748b;white-space:nowrap;">每季一次</td>
+                  <td style="padding:5px 6px;text-align:center;"><select onchange="this.style.color=this.value==='done'?'#16a34a':this.value==='progress'?'#2563eb':'#94a3b8'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:#94a3b8;box-sizing:border-box;"><option value="">— 选择状态 —</option><option value="pending">☐ 未开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已结束</option></select></td>
                 </tr>
                 <tr style="border-bottom:1px solid #f1f5f9;">
-                  <td style="padding:9px 12px;font-weight:500;color:#475569;">客户评价&gt;1分</td>
-                  <td style="padding:9px 12px;color:#64748b;">质量</td>
-                  <td style="padding:9px 12px;color:#64748b;">每有一次</td>
-                  <td style="padding:9px 12px;text-align:center;"><label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#94a3b8;"><input type="checkbox"><span>☐ 自评</span></label></td>
+                  <td style="padding:9px 10px;font-weight:500;color:#475569;white-space:nowrap;">客户评价&gt;1分</td>
+                  <td style="padding:5px 6px;"><input type="text" value="质量" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;"></td>
+                  <td style="padding:9px 8px;color:#64748b;white-space:nowrap;">每有一次</td>
+                  <td style="padding:5px 6px;text-align:center;"><select onchange="this.style.color=this.value==='done'?'#16a34a':this.value==='progress'?'#2563eb':'#94a3b8'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:#94a3b8;box-sizing:border-box;"><option value="">— 选择状态 —</option><option value="pending">☐ 未开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已结束</option><option value="self" selected>☐ 自评</option></select></td>
                 </tr>
                 <tr style="border-bottom:1px solid #f1f5f9;">
-                  <td style="padding:9px 12px;font-weight:500;color:#475569;">参与出证及提出意见</td>
-                  <td style="padding:9px 12px;color:#64748b;">质量</td>
-                  <td style="padding:9px 12px;color:#64748b;">交付后见证</td>
-                  <td style="padding:9px 12px;text-align:center;"><label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#94a3b8;"><input type="checkbox"><span>☐ 未开始</span></label></td>
+                  <td style="padding:9px 10px;font-weight:500;color:#475569;white-space:nowrap;">参与出证及提出意见</td>
+                  <td style="padding:5px 6px;"><input type="text" value="质量" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;"></td>
+                  <td style="padding:9px 8px;color:#64748b;white-space:nowrap;">交付后见证</td>
+                  <td style="padding:5px 6px;text-align:center;"><select onchange="this.style.color=this.value==='done'?'#16a34a':this.value==='progress'?'#2563eb':'#94a3b8'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:#94a3b8;box-sizing:border-box;"><option value="">— 选择状态 —</option><option value="pending">☐ 未开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已结束</option></select></td>
                 </tr>
                 <tr style="border-bottom:1px solid #f1f5f9;">
-                  <td style="padding:9px 12px;font-weight:500;color:#475569;">改进效果验证</td>
-                  <td style="padding:9px 12px;color:#64748b;">质量</td>
-                  <td style="padding:9px 12px;color:#64748b;">整改后</td>
-                  <td style="padding:9px 12px;text-align:center;"><label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#94a3b8;"><input type="checkbox"><span>☐ 未开始</span></label></td>
+                  <td style="padding:9px 10px;font-weight:500;color:#475569;white-space:nowrap;">改进效果验证</td>
+                  <td style="padding:5px 6px;"><input type="text" value="质量" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;"></td>
+                  <td style="padding:9px 8px;color:#64748b;white-space:nowrap;">整改后</td>
+                  <td style="padding:5px 6px;text-align:center;"><select onchange="this.style.color=this.value==='done'?'#16a34a':this.value==='progress'?'#2563eb':'#94a3b8'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:#94a3b8;box-sizing:border-box;"><option value="">— 选择状态 —</option><option value="pending">☐ 未开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已结束</option></select></td>
                 </tr>
               </tbody>
             </table>
@@ -2138,31 +2138,31 @@ const App = (function() {
         <div class="card" style="margin-bottom:0;">
           <div class="card-header">📋 满意度管理</div>
           <div class="card-body" style="padding:0;overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;">
               <thead><tr style="background:#f1f5f9;">
-                <th style="padding:8px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">协同事项</th>
-                <th style="padding:8px 8px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:50px;">责任人</th>
-                <th style="padding:8px 8px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:70px;">截止日期</th>
-                <th style="padding:8px 8px;text-align:center;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:65px;">状态</th>
+                <th style="padding:8px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:36%;">协同事项</th>
+                <th style="padding:8px 6px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:16%;">责任人</th>
+                <th style="padding:8px 6px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:24%;">截止日期</th>
+                <th style="padding:8px 6px;text-align:center;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;width:24%;">状态</th>
               </tr></thead>
               <tbody>
                 <tr style="border-bottom:1px solid #f1f5f9;background:#fefce8;">
-                  <td style="padding:8px 10px;font-weight:500;color:#854d0e;">季度调查计划</td>
-                  <td style="padding:8px 8px;color:#64748b;">质量</td>
-                  <td style="padding:8px 8px;color:#64748b;">每季度</td>
-                  <td style="padding:8px 8px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#d97706;">⏳<span>待开始</span></span></td>
+                  <td style="padding:8px 10px;font-weight:500;color:#854d0e;white-space:nowrap;">季度调查计划</td>
+                  <td style="padding:5px 6px;"><input type="text" value="质量" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;"></td>
+                  <td style="padding:8px 6px;color:#64748b;white-space:nowrap;">每季度</td>
+                  <td style="padding:5px 6px;text-align:center;"><select onchange="this.style.color=this.value==='done'?'#16a34a':this.value==='progress'?'#2563eb':this.value==='info'?'#3b82f6':'#d97706'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:#d97706;box-sizing:border-box;"><option value="">— 选择 —</option><option value="pending">⏳ 待开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已完成</option><option value="info">ℹ️ 信息</option></select></td>
                 </tr>
                 <tr style="border-bottom:1px solid #f1f5f9;">
-                  <td style="padding:8px 10px;font-weight:500;color:#475569;">年度NPS评分</td>
-                  <td style="padding:8px 8px;color:#64748b;">商务</td>
-                  <td style="padding:8px 8px;color:#64748b;">每年一次</td>
-                  <td style="padding:8px 8px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#3b82f6;">ℹ️<span>信息</span></span></td>
+                  <td style="padding:8px 10px;font-weight:500;color:#475569;white-space:nowrap;">年度NPS评分</td>
+                  <td style="padding:5px 6px;"><input type="text" value="商务" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;"></td>
+                  <td style="padding:8px 6px;color:#64748b;white-space:nowrap;">每年一次</td>
+                  <td style="padding:5px 6px;text-align:center;"><select onchange="this.style.color=this.value==='done'?'#16a34a':this.value==='progress'?'#2563eb':this.value==='info'?'#3b82f6':'#94a3b8'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:#3b82f6;box-sizing:border-box;"><option value="">— 选择 —</option><option value="pending">⏳ 待开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已完成</option><option value="info" selected>ℹ️ 信息</option></select></td>
                 </tr>
                 <tr style="border-bottom:1px solid #f1f5f9;">
-                  <td style="padding:8px 10px;font-weight:500;color:#475569;">客户应用处理记录</td>
-                  <td style="padding:8px 8px;color:#64748b;">套服</td>
-                  <td style="padding:8px 8px;color:#64748b;">发现即处理</td>
-                  <td style="padding:8px 8px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#d97706;">⏳<span>待开始</span></span></td>
+                  <td style="padding:8px 10px;font-weight:500;color:#475569;white-space:nowrap;">客户应用处理记录</td>
+                  <td style="padding:5px 6px;"><input type="text" value="套服" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;box-sizing:border-box;"></td>
+                  <td style="padding:8px 6px;color:#64748b;white-space:nowrap;">发现即处理</td>
+                  <td style="padding:5px 6px;text-align:center;"><select onchange="this.style.color=this.value==='done'?'#16a34a':this.value==='progress'?'#2563eb':this.value==='info'?'#3b82f6':'#d97706'" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer;color:#d97706;box-sizing:border-box;"><option value="">— 选择 —</option><option value="pending">⏳ 待开始</option><option value="progress">◉ 进行中</option><option value="done">✓ 已完成</option><option value="info">ℹ️ 信息</option></select></td>
                 </tr>
               </tbody>
             </table>
@@ -2446,18 +2446,30 @@ const App = (function() {
     _surveyData.responses.push(response);
     localStorage.setItem('ess_survey_responses',JSON.stringify(_surveyData.responses));
 
-    // 📧 自动发送邮件功能
+    // 📧 智能邮件发送（优先后端API，降级mailto）
     try {
       var emailBody = buildSurveyEmailBody(response);
-      var mailtoLink = 'mailto:18372757379@139.com?subject=' + 
-                      encodeURIComponent('ESS交付管理系统 - 客户满意度调查问卷 - ' + response.name) + 
-                      '&body=' + encodeURIComponent(emailBody);
+      var emailSubject = 'ESS交付管理系统 - 客户满意度调查问卷 - ' + response.name;
+      var emailEl = document.getElementById('emailStatus');
       
-      // 延迟打开邮件客户端（避免阻塞UI）
-      setTimeout(function() {
-        window.open(mailtoLink, '_blank');
-        toast('正在打开邮件客户端...', 'info');
-      }, 500);
+      // 尝试调用后端API发送
+      sendEmailViaAPI(emailSubject, emailBody, response).then(function(result) {
+        if (result && result.success) {
+          // API发送成功
+          if(emailEl) { emailEl.innerHTML = '✅ 邮件已通过API成功发送 → ' + (result.to || '18372757379@139.com'); emailEl.style.color = '#16a34a'; }
+          console.log('[邮件API] 发送成功, messageId:', result.messageId);
+        } else {
+          // API失败，降级为mailto
+          console.log('[邮件API] 不可用，降级为mailto协议:', result ? result.error : '网络错误');
+          fallbackMailto(emailSubject, emailBody);
+          if(emailEl) { emailEl.innerHTML = '⚠️ 后端不可用，已打开邮件客户端（请手动发送）'; emailEl.style.color = '#d97706'; }
+        }
+      }).catch(function(err) {
+        // 异常，降级为mailto
+        console.warn('[邮件API] 调用异常，降级为mailto:', err.message);
+        fallbackMailto(emailSubject, emailBody);
+        if(emailEl) { emailEl.innerHTML = '⚠️ 后端连接失败，已打开邮件客户端'; emailEl.style.color = '#d97706'; }
+      });
     } catch(e) {
       console.error('邮件生成失败:', e);
     }
@@ -2466,9 +2478,23 @@ const App = (function() {
     try {
       setTimeout(function() {
         downloadSurveyCSV(response);
+        
+        // 🌐 尝试自动上传到云盘（如果后端可用）
+        uploadCSVToCloud(response).then(function(result) {
+          var cloudEl = document.getElementById('cloudStatus');
+          if (cloudEl) {
+            if (result && result.success) {
+              cloudEl.innerHTML = '✅ CSV已自动上传到云盘';
+              cloudEl.style.color = '#16a34a';
+            } else {
+              cloudEl.innerHTML = '⚠️ 云盘未配置或上传失败，请手动上传（见下方指引）';
+              cloudEl.style.color = '#d97706';
+            }
+          }
+        });
       }, 800);
     } catch(e) {
-      console.error('CSV下载失败:', e);
+      console.error('CSV下载/上传失败:', e);
     }
 
     // 显示成功动画
@@ -2535,6 +2561,189 @@ const App = (function() {
 
     return lines.join('\n');
   }
+
+  // ========== 后端API集成（智能降级）==========
+
+  // 后端API基础地址（可配置，支持相对路径和绝对URL）
+  var _apiBaseUrl = (function() {
+    // 尝试从localStorage读取自定义API地址
+    var custom = localStorage.getItem('ess_api_base_url');
+    if (custom) return custom;
+    // 默认：与当前页面同源
+    return window.location.origin;
+  })();
+
+  /**
+   * 调用后端API发送邮件
+   * @param {string} subject - 邮件主题
+   * @param {string} text - 邮件正文（纯文本）
+   * @param {object} response - 问卷响应数据（用于生成HTML）
+   * @returns {Promise} API调用结果
+   */
+  function sendEmailViaAPI(subject, text, response) {
+    return new Promise(function(resolve) {
+      // 构建HTML版本邮件正文
+      var html = '<html><body style="font-family:Arial,sans-serif;padding:20px;">'
+        + '<h2 style="color:#2563eb;">ESS交付管理系统 - 客户满意度调查问卷</h2>'
+        + '<table style="border-collapse:collapse;width:100%;font-size:14px;">'
+        + '<tr><td style="border:1px solid #e2e8f0;padding:8px;background:#f8fafc;font-weight:bold;">姓名</td><td style="border:1px solid #e2e8f0;padding:8px;">' + response.name + '</td></tr>'
+        + '<tr><td style="border:1px solid #e2e8f0;padding:8px;background:#f8fafc;font-weight:bold;">公司</td><td style="border:1px solid #e2e8f0;padding:8px;">' + response.company + '</td></tr>'
+        + '<tr><td style="border:1px solid #e2e8f0;padding:8px;background:#f8fafc;font-weight:bold;">角色</td><td style="border:1px solid #e2e8f0;padding:8px;">' + response.role + '</td></tr>'
+        + '<tr><td style="border:1px solid #e2e8f0;padding:8px;background:#f8fafc;font-weight:bold;">日期</td><td style="border:1px solid #e2e8f0;padding:8px;">' + response.date + '</td></tr>'
+        + '<tr><td style="border:1px solid #e2e8f0;padding:8px;background:#f8fafc;font-weight:bold;color:#16a34a;">综合评分</td><td style="border:1px solid #e2e8f0;padding:8px;font-size:18px;font-weight:bold;color:#16a34a;">' + response.overallScore + ' / 10 分</td></tr>'
+        + '</table>'
+        + '<h3 style="margin-top:16px;">各维度评分</h3>';
+      
+      _surveyData.sections.forEach(function(sec) {
+        var secTotal = 0, secCount = 0;
+        sec.questions.forEach(function(q) {
+          if(response.scores[q.id] !== null) {
+            secTotal += response.scores[q.id];
+            secCount++;
+          }
+        });
+        if(secCount > 0) {
+          var avg = (secTotal/secCount).toFixed(1);
+          var color = avg >= 8 ? '#16a34a' : avg >= 6 ? '#d97706' : '#dc2626';
+          html += '<p style="margin:4px 0;"><strong>' + sec.title + '</strong>: <span style="color:' + color + ';font-weight:bold;">' + avg + '分</span></p>';
+        }
+      });
+
+      html += '<h3 style="margin-top:16px;">改进建议</h3><p>' + (response.improve || '无') + '</p>';
+      html += '<hr><p style="color:#94a3b8;font-size:12px;">此邮件由 ESS交付管理系统 自动生成 | 问卷ID:' + response.id + '</p>';
+      html += '</body></html>';
+
+      // 发送API请求（带超时控制）
+      var timeoutId;
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', _apiBaseUrl + '/api/send-email', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.timeout = 8000; // 8秒超时
+
+      xhr.onload = function() {
+        clearTimeout(timeoutId);
+        try {
+          var result = JSON.parse(xhr.responseText);
+          result.to = '18372757379@139.com';
+          resolve(result);
+        } catch(e) {
+          resolve({ success: false, error: '解析响应失败: ' + e.message });
+        }
+      };
+
+      xhr.onerror = function() {
+        clearTimeout(timeoutId);
+        resolve({ success: false, error: '网络连接失败或后端未启动' });
+      };
+
+      xhr.ontimeout = function() {
+        resolve({ success: false, error: '请求超时(8s)，后端可能未启动' });
+      };
+
+      timeoutId = setTimeout(function() {
+        xhr.abort();
+        resolve({ success: false, error: '请求超时' });
+      }, 8500);
+
+      xhr.send(JSON.stringify({
+        to: '18372757379@139.com',
+        subject: subject,
+        text: text,
+        html: html
+      }));
+    });
+  }
+
+  /**
+   * 降级方案：使用mailto协议打开邮件客户端
+   */
+  function fallbackMailto(subject, body) {
+    try {
+      var mailtoLink = 'mailto:18372757379@139.com?subject=' +
+        encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(body);
+      window.open(mailtoLink, '_blank');
+    } catch(e) {
+      console.warn('[mailto] 打开失败:', e.message);
+    }
+  }
+
+  /**
+   * 尝试上传CSV到云盘（通过后端API）
+   * @param {object} response - 问卷响应数据
+   * @returns {Promise} 上传结果
+   */
+  function uploadCSVToCloud(response) {
+    return new Promise(function(resolve) {
+      // 先生成CSV内容
+      var BOM = '\uFEFF';
+      var csv = BOM + '问卷ID,姓名,公司,角色,日期,综合评分,改进建议\n';
+      csv += response.id + ',' + response.name + ',' + response.company + ',';
+      csv += response.role + ',' + response.date + ',' + response.overallScore + ',';
+      csv += '"' + (response.improve || '').replace(/"/g, '""') + '"\n';
+
+      _surveyData.sections.forEach(function(sec) {
+        sec.questions.forEach(function(q) {
+          csv += ',' + q.text + ',' + (response.scores[q.id] || '') + '\n';
+        });
+      });
+
+      var filename = '满意度问卷_' + response.name + '_' + response.date + '.csv';
+
+      // 调用后端上传API
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', _apiBaseUrl + '/api/cloud-upload', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.timeout = 10000; // 10秒超时
+
+      xhr.onload = function() {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch(e) {
+          resolve({ success: false, error: e.message });
+        }
+      };
+
+      xhr.onerror = function() {
+        resolve({ success: false, error: '网络连接失败' });
+      };
+
+      xhr.ontimeout = function() {
+        resolve({ success: false, error: '上传超时' });
+      };
+
+      // 将CSV转为base64传输
+      var base64 = btoa(unescape(encodeURIComponent(csv)));
+      xhr.send(JSON.stringify({
+        filename: filename,
+        size: csv.length,
+        content: base64
+      }));
+    });
+  }
+
+  /**
+   * 检测后端API是否可用（异步）
+   * @returns {Promise<boolean>}
+   */
+  function checkBackendAvailable() {
+    return new Promise(function(resolve) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', _apiBaseUrl + '/api/health', true);
+      xhr.timeout = 3000;
+      xhr.onload = function() {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          resolve(data.status === 'ok');
+        } catch(e) { resolve(false); }
+      };
+      xhr.onerror = function() { resolve(false); };
+      xhr.ontimeout = function() { resolve(false); };
+      xhr.send();
+    });
+  }
+
+  // ========== 后端API集成结束 ==========
 
   // 下载单个问卷的CSV文件
   function downloadSurveyCSV(response) {
@@ -3785,6 +3994,7 @@ const App = (function() {
     openSatisfactionSurvey,viewSurveyStatistics,exportSurveyCSV,selectScore,submitSurvey,loadQuickStats,bindSurveyEvents,
     handleSurveyClose,renderSurveyRiskDashboard,openContactEmail,
     buildSurveyEmailBody,downloadSurveyCSV,
+    sendEmailViaAPI,fallbackMailto,uploadCSVToCloud,checkBackendAvailable,
     drawMfgChart,drawInstallChart,drawSATChart,drawLogisticsChart,
     toast
   };

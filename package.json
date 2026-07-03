@@ -1,0 +1,1 @@
+{"name": "ess-delivery-system-api", "version": "1.0.0", "description": "ESS交付管理系统 - 轻量级后端API服务（邮件发送+云盘上传）", "main": "server.js", "scripts": {"start": "node server.js", "dev": "node server.js"}, "dependencies": {"nodemailer": "^6.9.0"}, "keywords": ["ESS", "delivery", "email", "cloudreve"], "author": "郑丹", "license": "MIT"}
