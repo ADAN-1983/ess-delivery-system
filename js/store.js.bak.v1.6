@@ -1,0 +1,398 @@
+// ============================================================
+// store.js - ESS交付管理系统 统一数据抽象层
+// v1.2 | 2026-06-29 | 同步优先架构，file://协议兼容
+// 策略：数据直接内联嵌入，LocalStorage持久化，fetch仅作后台增强
+// ============================================================
+
+const Store = (function() {
+  'use strict';
+
+  const STORAGE_KEY = 'ess_delivery_v1.2';
+  const DEFAULT_PROJECT_ID = '3';
+
+  let _state = null;
+  let _listeners = [];
+  let _initResolved = false;
+
+  // ========== 内联数据（主数据源，file://协议下最终兜底）==========
+  const EMBEDDED_PROJECTS = [
+    {
+      "id": "1", "name": "东尚渔光互补0.94GW/188MWh光伏电站项目",
+      "capacity": "94MW/188MWh", "batteryTech": "LFP", "cabinetCount": "38",
+      "cabinetModel": "5.016MWh液冷集装箱", "location": "江苏连云港",
+      "contractType": "EPC", "status": "已交付", "currentPhase": 9,
+      "phases": { "1_rnd":{"completed":100},"2_bd":{"completed":100},"3_mfg":{"completed":100},"4_logistics":{"completed":100},"5_install":{"completed":100},"6_commission":{"completed":100},"7_handover":{"completed":100},"8_aftersales":{"completed":100},"9_ops":{"completed":100} }
+    },
+    {
+      "id": "2", "name": "新疆木垒600MWh储能电站项目",
+      "capacity": "150MW/600MWh", "batteryTech": "LFP", "cabinetCount": "120",
+      "cabinetModel": "1P104S-314Ah电池包", "location": "新疆昌吉州",
+      "contractType": "EPC", "status": "已交付", "currentPhase": 9,
+      "phases": { "1_rnd":{"completed":100},"2_bd":{"completed":100},"3_mfg":{"completed":100},"4_logistics":{"completed":100},"5_install":{"completed":100},"6_commission":{"completed":100},"7_handover":{"completed":100},"8_aftersales":{"completed":100},"9_ops":{"completed":100} }
+    },
+    {
+      "id": "3", "name": "印度新德里ReNew 120MW/240MWh调峰电站(交付中)",
+      "capacity": "120MW/240MWh", "batteryTech": "LFP", "cabinetCount": "48",
+      "cabinetModel": "ArcBank1.0-5.016MWh液冷预制舱", "location": "印度新德里",
+      "contractType": "EPC", "status": "交付中", "currentPhase": 3,
+      "phases": { "1_rnd":{"completed":100,"notes":"型式试验通过，314Ah电芯"},"2_bd":{"completed":100,"notes":"EPC合同签订（2025-Q3）"},"3_mfg":{"completed":30,"notes":"首批16柜排产中，FAT待执行"},"4_logistics":{"completed":0,"notes":"国际海运计划中"},"5_install":{"completed":0},"6_commission":{"completed":0},"7_handover":{"completed":0},"8_aftersales":{"completed":0},"9_ops":{"completed":0} },
+      "delivery": { "fatStandardHours":"8.75h","installStandardDays":"7天/柜","factoryLeadTime":"2-3月/批次(16柜)","shippingRoute":"上海→孟买(海运约25天+清关7天)" }
+    },
+    {
+      "id": "4", "name": "印度安得拉邦225MW/450MWh风光储一体化工程",
+      "capacity": "225MW/450MWh", "batteryTech": "LFP", "cabinetCount": "90",
+      "cabinetModel": "ArcBank1.0-5.016MWh液冷预制舱", "location": "印度安得拉邦",
+      "contractType": "BOO", "status": "计划交付", "currentPhase": 1,
+      "phases": { "1_rnd":{"completed":10,"notes":"需求分析阶段"},"2_bd":{"completed":0},"3_mfg":{"completed":0},"4_logistics":{"completed":0},"5_install":{"completed":0},"6_commission":{"completed":0},"7_handover":{"completed":0},"8_aftersales":{"completed":0},"9_ops":{"completed":0} }
+    }
+  ];
+
+  const EMBEDDED_INSTALL_SOP = {
+    "version": "1.0", "product": "ArcBank1.0-5.016MWh",
+    "phases": [
+      {"id":"ins-1","sortOrder":1,"name":"地基施工","steps":["基础开挖与垫层浇筑","预埋件定位安装","基础养护与强度检测"],"checks":[{"id":"ins-1-1","item":"基础水平度校验（≤2mm/m）","standard":"GB 50007-2011","type":"关键"},{"id":"ins-1-2","item":"地脚螺栓定位偏差（≤5mm）","standard":"GB 50231-2009","type":"重要"},{"id":"ins-1-3","item":"基础强度C30达标","standard":"GB 50010-2010","type":"关键"}],"safety":["基坑围护警示","作业人员佩戴安全帽"]},
+      {"id":"ins-2","sortOrder":2,"name":"预制舱吊装","steps":["吊装方案编制与审批","起重机就位与试吊","预制舱精准落位"],"checks":[{"id":"ins-2-1","item":"吊具载荷检验","standard":"JB/T 1306-2008","type":"关键"},{"id":"ins-2-2","item":"舱体水平度（≤2°）","standard":"GB 50205-2020","type":"重要"},{"id":"ins-2-3","item":"吊装方案审核","standard":"JGJ 276-2012","type":"关键"}],"safety":["吊装区域警戒线","风速>6级停止作业"]},
+      {"id":"ins-3","sortOrder":3,"name":"电气连接","steps":["电缆敷设与标识","直流侧汇流接线","交流侧并网接线"],"checks":[{"id":"ins-3-1","item":"电缆绝缘电阻测试（≥20MΩ）","standard":"GB 50150-2016","type":"关键"},{"id":"ins-3-2","item":"相序核对正确","standard":"GB 50150-2016","type":"关键"},{"id":"ins-3-3","item":"接线端子力矩（按厂家规定）","standard":"GB 50254-2016","type":"重要"}],"safety":["验电确认无电操作","绝缘手套/鞋具"]},
+      {"id":"ins-4","sortOrder":4,"name":"液冷管道","steps":["管道预制与试压","管沟开挖与支架安装","管道连接与保温"],"checks":[{"id":"ins-4-1","item":"管道压力试验（1.5倍工作压力）","standard":"GB 50235-2010","type":"关键"},{"id":"ins-4-2","item":"管道冲洗与清洗度","standard":"GB 50235-2010","type":"重要"},{"id":"ins-4-3","item":"保温层厚度与密封","standard":"GB 50264-2013","type":"重要"}],"safety":["压力试验时人员防护","高处作业安全带"]},
+      {"id":"ins-5","sortOrder":5,"name":"消防系统","steps":["消防管路安装","探测器布置与接线","联动调试"],"checks":[{"id":"ins-5-1","item":"灭火器配置数量与类型","standard":"GB 50140-2005","type":"关键"},{"id":"ins-5-2","item":"烟感/温感安装位置","standard":"GB 50166-2019","type":"关键"},{"id":"ins-5-3","item":"消防联动测试","standard":"GB 50116-2013","type":"关键"}],"safety":["消防通道畅通","灭火设备可用"]},
+      {"id":"ins-6","sortOrder":6,"name":"接地系统","steps":["接地网施工","设备接地连接","接地电阻测试"],"checks":[{"id":"ins-6-1","item":"接地电阻（≤4Ω）","standard":"GB 50169-2016","type":"关键"},{"id":"ins-6-2","item":"等电位连接可靠","standard":"GB 50057-2010","type":"关键"},{"id":"ins-6-3","item":"接地线截面达标","standard":"GB 50169-2016","type":"重要"}],"safety":["防雷接地与保护接地分开"]},
+      {"id":"ins-7","sortOrder":7,"name":"围栏与安防","steps":["围栏安装","监控摄像头布置","门禁系统调试"],"checks":[{"id":"ins-7-1","item":"围栏高度≥2.5m","standard":"GB 50348-2018","type":"重要"},{"id":"ins-7-2","item":"监控无死角覆盖","standard":"GB 50348-2018","type":"重要"},{"id":"ins-7-3","item":"门禁刷卡功能正常","standard":"GB 50348-2018","type":"重要"}],"safety":["警示标识张贴","入侵报警测试"]}
+    ],
+    "fiveM1E": {"人":"持证电工、焊工、起重工","机":"25T~100T汽车吊、力矩扳手、绝缘测试仪","料":"电缆/铜排/螺栓/密封件","法":"厂家安装手册+目标国当地规范","环":"环境温度0-45℃、湿度<85%","测":"绝缘电阻测试仪、接地电阻测试仪、水平仪、力矩扳手"}
+  };
+
+  const EMBEDDED_SAT_SOP = {
+    "version": "1.0", "product": "ArcBank1.0-5.016MWh",
+    "phases": [
+      {"id":"sat-1","sortOrder":1,"name":"外观检查","steps":["预制舱外观完好性","设备铭牌核对","接地标识检查"],"checks":[{"id":"sat-1-1","item":"舱体无碰撞变形","standard":"GB/T 36276-2018","type":"重要"},{"id":"sat-1-2","item":"铭牌参数与设计一致","standard":"GB/T 36276-2018","type":"关键"},{"id":"sat-1-3","item":"防锈涂层无损伤","standard":"GB 50205-2020","type":"重要"}],"witness":"业主代表/监理"},
+      {"id":"sat-2","sortOrder":2,"name":"绝缘测试","steps":["直流侧绝缘电阻","交流侧绝缘电阻","辅助回路绝缘"],"checks":[{"id":"sat-2-1","item":"直流正极对地≥20MΩ","standard":"GB 50150-2016","type":"关键"},{"id":"sat-2-2","item":"交流相间绝缘≥10MΩ","standard":"GB 50150-2016","type":"关键"},{"id":"sat-2-3","item":"辅助回路绝缘≥1MΩ","standard":"GB 50150-2016","type":"重要"}],"witness":"业主代表"},
+      {"id":"sat-3","sortOrder":3,"name":"耐压试验","steps":["直流侧耐压","交流侧耐压","辅助回路耐压"],"checks":[{"id":"sat-3-1","item":"直流耐压2500V/1min","standard":"GB 50150-2016","type":"关键"},{"id":"sat-3-2","item":"交流耐压工频/1min","standard":"GB 50150-2016","type":"关键"}],"witness":"业主代表/厂家代表"},
+      {"id":"sat-4","sortOrder":4,"name":"通讯调试","steps":["BMS与PCS通讯","EMS与BMS通讯","SCADA接入"],"checks":[{"id":"sat-4-1","item":"Modbus TCP通讯正常","standard":"GB/T 36547-2018","type":"关键"},{"id":"sat-4-2","item":"数据采集点表完整","standard":"GB/T 36995-2019","type":"重要"},{"id":"sat-4-3","item":"遥测遥信响应≤2s","standard":"GB/T 37593-2019","type":"重要"}],"witness":"调度/EMS工程师"},
+      {"id":"sat-5","sortOrder":5,"name":"充放电测试","steps":["恒功率充电","恒功率放电","满充满放循环"],"checks":[{"id":"sat-5-1","item":"充电效率≥93%","standard":"GB/T 36548-2018","type":"关键"},{"id":"sat-5-2","item":"容量衰减<3%首循","standard":"GB/T 36276-2018","type":"关键"},{"id":"sat-5-3","item":"温升≤15K(满功率)","standard":"GB/T 36276-2018","type":"关键"}],"witness":"业主代表/厂家代表"},
+      {"id":"sat-6","sortOrder":6,"name":"保护功能验证","steps":["过充/过放保护","短路保护","温度保护"],"checks":[{"id":"sat-6-1","item":"过充保护动作电压","standard":"GB/T 34131-2017","type":"关键"},{"id":"sat-6-2","item":"短路保护动作时间≤5ms","standard":"GB/T 34131-2017","type":"关键"},{"id":"sat-6-3","item":"温度保护阶梯降功率","standard":"GB/T 34131-2017","type":"关键"}],"witness":"业主代表/保险公司"},
+      {"id":"sat-7","sortOrder":7,"name":"并网试验","steps":["同期并网","功率调节","孤岛检测"],"checks":[{"id":"sat-7-1","item":"同期电压差<5%","standard":"GB/T 19939-2005","type":"关键"},{"id":"sat-7-2","item":"有功/无功调节功能","standard":"GB/T 19964-2012","type":"重要"},{"id":"sat-7-3","item":"防孤岛保护动作≤2s","standard":"GB/T 29319-2012","type":"关键"}],"witness":"调度/电网公司"},
+      {"id":"sat-8","sortOrder":8,"name":"72h试运行","steps":["连续运行72小时","性能数据记录","故障记录统计"],"checks":[{"id":"sat-8-1","item":"可用率≥99%","standard":"GB/T 36547-2018","type":"关键"},{"id":"sat-8-2","item":"平均无故障时间","standard":"GB/T 36547-2018","type":"重要"},{"id":"sat-8-3","item":"试运行报告签署","standard":"GB/T 36995-2019","type":"关键"}],"witness":"业主代表/运维团队"}
+    ],
+    "fiveM1E": {"人":"调试总工、BMS/EMS工程师、业主代表","机":"绝缘电阻测试仪、耐压测试仪、功率分析仪、热成像仪","料":"测试记录表、校准证书、备品备件清单","法":"GB/T 36547/36995/37593","环":"环境温度0-45℃、电网电压波动±10%","测":"绝缘电阻、保护动作时间、效率、温升"}
+  };
+
+  const EMBEDDED_FAT_SOP = {
+    "version": "1.0", "product": "ArcBank1.0-5.016MWh",
+    "testItems": [
+      {"id":"fat-1","name":"出厂外观检查","method":"目视检查+涂层测厚仪","content":"预制舱外观、焊接质量、涂层、标签标识","standard":"GB/T 36276-2018","duration":"0.5h","type":"关键"},
+      {"id":"fat-2","name":"绝缘电阻试验","method":"兆欧表2500V","content":"直流侧/交流侧绝缘电阻测量","standard":"GB 50150-2016","duration":"1.0h","type":"关键"},
+      {"id":"fat-3","name":"耐压试验","method":"耐压测试仪","content":"交直流耐压、工频耐压","standard":"GB 50150-2016","duration":"1.5h","type":"关键"},
+      {"id":"fat-4","name":"BMS功能测试","method":"BMS测试平台","content":"电压采集精度、温度采集、均衡功能、保护功能","standard":"GB/T 34131-2017","duration":"2.0h","type":"关键"},
+      {"id":"fat-5","name":"液冷系统测试","method":"流量计+温控台","content":"流量、温控精度、漏液检测","standard":"厂家技术规范","duration":"1.5h","type":"重要"},
+      {"id":"fat-6","name":"消防系统测试","method":"烟温探测器测试仪","content":"探测器灵敏度、灭火装置启动、联动信号","standard":"GB 50116-2013","duration":"0.5h","type":"关键"},
+      {"id":"fat-7","name":"通讯接口测试","method":"Modbus调试工具","content":"Modbus TCP/CAN/IO点位核对","standard":"GB/T 36995-2019","duration":"0.5h","type":"重要"},
+      {"id":"fat-8","name":"充放电功能测试","method":"直流源+电子负载","content":"短时充放电验证功率输出正常","standard":"GB/T 36548-2018","duration":"0.75h","type":"关键"},
+      {"id":"fat-9","name":"包装检查","method":"目视检查+清单核对","content":"包装完整性、海运标识、干燥剂、防震措施","standard":"厂家装箱要求","duration":"0.5h","type":"重要"}
+    ],
+    "prerequisites": ["所有子部件安装完毕","内部走线通过目检","BMS固件已刷写","工位5S清洁完毕"],
+    "specs":{"ratedEnergy":"5016 kWh","ratedPower":"1250 kW","voltage":"1500 Vdc","weight":"45T","dimensions":"6.058×2.438×2.896m","cooling":"液冷","cell":"314Ah LFP"},"totalStandardHours":"8.75h"
+  };
+
+  // ========== 初始化（同步优先，异步增强）==========
+
+  async function init() {
+    console.log('Store.init() 开始...');
+
+    // ① 同步构建初始状态（确保立即可用）
+    _state = buildSyncState();
+    _initResolved = true;
+    console.log('Store: 同步初始化完成, 项目数:', _state.projects.length);
+
+    // ② 异步后台增强（非阻塞）
+    enrichIfPossible().catch(e => {
+      console.log('Store: 后台增强跳过（file://协议或网络不可用）');
+    });
+
+    return _state;
+  }
+
+  function buildSyncState() {
+    // 优先从LocalStorage恢复
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.projects && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+          console.log('Store: 从LocalStorage恢复', parsed.projects.length, '个项目');
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Store: LocalStorage读取失败, 使用内联数据');
+    }
+
+    // 使用内联嵌入式数据
+    console.log('Store: 使用内联嵌入式数据');
+    return {
+      selectedProjectId: DEFAULT_PROJECT_ID,
+      projects: JSON.parse(JSON.stringify(EMBEDDED_PROJECTS)),
+      installSOP: EMBEDDED_INSTALL_SOP,
+      satSOP: EMBEDDED_SAT_SOP,
+      fatSOP: EMBEDDED_FAT_SOP
+    };
+  }
+
+  async function enrichIfPossible() {
+    // 尝试从远程加载更新的数据（仅当网络可用时）
+    try {
+      const [prjResp, insResp, satResp, fatResp] = await Promise.allSettled([
+        fetchWithTimeout('data/projects.json', 3000),
+        fetchWithTimeout('data/install-sop.json', 3000),
+        fetchWithTimeout('data/sat-sop.json', 3000),
+        fetchWithTimeout('data/fat-sop.json', 3000)
+      ]);
+
+      // 项目数据
+      if (prjResp.status === 'fulfilled' && prjResp.value) {
+        const prj = prjResp.value;
+        if (prj.projects && prj.projects.length > 0) {
+          // 合并远程数据（保留本地SOP和用户操作状态）
+          const localSOPs = { installSOP: _state.installSOP, satSOP: _state.satSOP, fatSOP: _state.fatSOP };
+          _state.projects = prj.projects;
+          _state.selectedProjectId = prj.defaultProjectId || DEFAULT_PROJECT_ID;
+          _state.installSOP = localSOPs.installSOP;
+          _state.satSOP = localSOPs.satSOP;
+          _state.fatSOP = localSOPs.fatSOP;
+          console.log('Store: 远程项目数据加载成功');
+        }
+      }
+
+      // SOP数据（不覆盖已嵌入的数据）
+      if (insResp.status === 'fulfilled' && insResp.value && insResp.value.phases) {
+        _state.installSOP = insResp.value;
+      }
+      if (satResp.status === 'fulfilled' && satResp.value && satResp.value.phases) {
+        _state.satSOP = satResp.value;
+      }
+      if (fatResp.status === 'fulfilled' && fatResp.value && fatResp.value.testItems) {
+        _state.fatSOP = fatResp.value;
+      }
+    } catch (e) {
+      // 静默失败，已使用嵌入式数据
+    }
+
+    persist();
+    notify('dataChanged', {});
+  }
+
+  function fetchWithTimeout(url, timeoutMs) {
+    return new Promise(function(resolve, reject) {
+      var controller = new AbortController();
+      var timer = setTimeout(function() { controller.abort(); }, timeoutMs);
+      fetch(url, { signal: controller.signal })
+        .then(function(r) {
+          clearTimeout(timer);
+          if (!r.ok) { reject(new Error('HTTP ' + r.status)); return; }
+          return r.json();
+        })
+        .then(function(data) {
+          clearTimeout(timer);
+          resolve(data);
+        })
+        .catch(function(e) {
+          clearTimeout(timer);
+          reject(e);
+        });
+    });
+  }
+
+  function isReady() { return _initResolved; }
+
+  // ========== 持久化 ==========
+
+  function persist() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
+    } catch (e) {
+      console.warn('Store: LocalStorage写入失败', e);
+    }
+  }
+
+  function notify(event, data) {
+    _listeners.forEach(function(fn) { try { fn(event, data); } catch (e) {} });
+  }
+
+  // ========== 公开API ==========
+
+  function getState() { return _state; }
+
+  function getSelectedProjectId() { return _state ? _state.selectedProjectId : DEFAULT_PROJECT_ID; }
+
+  function getSelectedProject() {
+    if (!_state || !_state.projects) return EMBEDDED_PROJECTS[2];
+    return _state.projects.find(function(p) { return p.id === _state.selectedProjectId; }) || _state.projects[0] || EMBEDDED_PROJECTS[2];
+  }
+
+  function getAllProjects() {
+    if (!_state || !_state.projects) return EMBEDDED_PROJECTS;
+    return _state.projects.length > 0 ? _state.projects : EMBEDDED_PROJECTS;
+  }
+
+  function setSelectedProject(projectId) {
+    if (!_state) return;
+    _state.selectedProjectId = projectId;
+    persist();
+    notify('projectChanged', { project: getSelectedProject() });
+    notify('dataChanged', {});
+  }
+
+  function getProjectPhases(projectId) {
+    var pid = projectId || (_state && _state.selectedProjectId);
+    var pj = _state && _state.projects ? _state.projects.find(function(p) { return p.id === pid; }) : null;
+    return pj ? pj.phases : {};
+  }
+
+  function setPhaseProgress(projectId, phaseKey, completed) {
+    if (!_state) return;
+    var pj = _state.projects.find(function(p) { return p.id === (projectId || _state.selectedProjectId); });
+    if (!pj || !pj.phases[phaseKey]) return;
+    pj.phases[phaseKey].completed = Math.max(0, Math.min(100, Number(completed) || 0));
+
+    var phaseKeys = Object.keys(pj.phases).sort();
+    var maxPhase = 1;
+    for (var i = phaseKeys.length - 1; i >= 0; i--) {
+      if (pj.phases[phaseKeys[i]].completed > 0) { maxPhase = i + 1; break; }
+    }
+    pj.currentPhase = maxPhase;
+
+    persist();
+    notify('progressChanged', { projectId: pj.id, phaseKey: phaseKey, completed: completed, currentPhase: maxPhase });
+    notify('dataChanged', {});
+  }
+
+  // ========== SOP数据获取 ==========
+
+  function getInstallSOP() { return (_state && _state.installSOP) || EMBEDDED_INSTALL_SOP; }
+  function getSatSOP() { return (_state && _state.satSOP) || EMBEDDED_SAT_SOP; }
+  function getFatSOP() { return (_state && _state.fatSOP) || EMBEDDED_FAT_SOP; }
+
+  function getSOPCheckState(projectId, sopType, checkId) {
+    if (!_state) return null;
+    var pj = _state.projects.find(function(p) { return p.id === (projectId || _state.selectedProjectId); });
+    if (!pj) return null;
+    var key = 'sop_' + sopType;
+    if (!pj[key]) pj[key] = {};
+    return pj[key][checkId] || null;
+  }
+
+  function setSOPCheckState(projectId, sopType, checkId, passed, notes) {
+    if (!_state) return;
+    var pj = _state.projects.find(function(p) { return p.id === (projectId || _state.selectedProjectId); });
+    if (!pj) return;
+    var key = 'sop_' + sopType;
+    if (!pj[key]) pj[key] = {};
+    pj[key][checkId] = { passed: !!passed, notes: notes || '', updatedAt: new Date().toISOString() };
+    persist();
+    notify('sopChanged', { projectId: pj.id, sopType: sopType, checkId: checkId, passed: !!passed });
+  }
+
+  // ========== 导入/导出 ==========
+
+  function exportFullJSON() { return JSON.stringify(_state, null, 2); }
+
+  function importFullJSON(jsonStr) {
+    try {
+      var data = JSON.parse(jsonStr);
+      if (!data.projects || !Array.isArray(data.projects)) throw new Error('无效数据格式');
+      _state = data;
+      if (!_state.selectedProjectId || !_state.projects.find(function(p) { return p.id === _state.selectedProjectId; })) {
+        _state.selectedProjectId = _state.projects[0] ? _state.projects[0].id : DEFAULT_PROJECT_ID;
+      }
+      // 确保SOP数据存在
+      if (!_state.installSOP || !_state.installSOP.phases) _state.installSOP = EMBEDDED_INSTALL_SOP;
+      if (!_state.satSOP || !_state.satSOP.phases) _state.satSOP = EMBEDDED_SAT_SOP;
+      if (!_state.fatSOP || !_state.fatSOP.testItems) _state.fatSOP = EMBEDDED_FAT_SOP;
+      persist();
+      notify('projectChanged', { project: getSelectedProject() });
+      notify('dataChanged', {});
+      return true;
+    } catch (e) { console.error('Store: 导入失败', e); return false; }
+  }
+
+  function importProjectsFromCSV(csvText) {
+    var lines = csvText.trim().split(/\r?\n/);
+    if (lines.length < 2) return { success: false, message: 'CSV无数据行' };
+    var headers = lines[0].split(',').map(function(h) { return h.trim(); });
+    var imported = [];
+    for (var i = 1; i < lines.length; i++) {
+      var vals = lines[i].split(',').map(function(v) { return v.trim(); });
+      if (vals.length < 6) continue;
+      imported.push({
+        id: String(Date.now()) + '-' + i, name: vals[0]||'', capacity: vals[1]||'',
+        batteryTech: vals[2]||'LFP', cabinetCount: vals[3]||'', cabinetModel: vals[4]||'',
+        location: vals[5]||'', contractType: vals[6]||'EPC', status: vals[7]||'计划交付',
+        currentPhase: 1, phases: makeEmptyPhases()
+      });
+    }
+    if (imported.length === 0) return { success: false, message: '未解析到有效项目数据' };
+    _state.projects = (_state.projects || []).concat(imported);
+    persist();
+    notify('projectChanged', { project: getSelectedProject() });
+    notify('dataChanged', {});
+    return { success: true, message: '成功导入 ' + imported.length + ' 个项目', count: imported.length };
+  }
+
+  function addProject(projData) {
+    var proj = {
+      id: String(Date.now()), name: projData.name || '新项目',
+      capacity: projData.capacity || '', batteryTech: projData.batteryTech || 'LFP',
+      cabinetCount: projData.cabinetCount || '', cabinetModel: projData.cabinetModel || '',
+      location: projData.location || '', contractType: projData.contractType || 'EPC',
+      status: projData.status || '计划交付', currentPhase: 1, phases: makeEmptyPhases()
+    };
+    _state.projects.push(proj);
+    persist();
+    notify('projectChanged', { project: getSelectedProject() });
+    return proj;
+  }
+
+  function resetProject(projectId) {
+    if (!_state) return;
+    var pj = _state.projects.find(function(p) { return p.id === (projectId || _state.selectedProjectId); });
+    if (!pj) return;
+    Object.keys(pj.phases).forEach(function(k) { pj.phases[k].completed = 0; pj.phases[k].notes = ''; });
+    pj.currentPhase = 1;
+    ['sop_install','sop_sat','sop_fat'].forEach(function(k) { delete pj[k]; });
+    persist();
+    notify('projectChanged', { project: pj });
+    notify('dataChanged', {});
+  }
+
+  function makeEmptyPhases() {
+    var ph = {};
+    ['1_rnd','2_bd','3_mfg','4_logistics','5_install','6_commission','7_handover','8_aftersales','9_ops']
+      .forEach(function(k) { ph[k] = { completed: 0, notes: '' }; });
+    return ph;
+  }
+
+  function on(event, fn) { _listeners.push(fn); }
+  function off(fn) { _listeners = _listeners.filter(function(f) { return f !== fn; }); }
+
+  // 暴露API
+  return {
+    init: init, persist: persist, getState: getState,
+    getSelectedProjectId: getSelectedProjectId,
+    getSelectedProject: getSelectedProject,
+    getAllProjects: getAllProjects,
+    isReady: isReady,
+    setSelectedProject: setSelectedProject,
+    getProjectPhases: getProjectPhases,
+    setPhaseProgress: setPhaseProgress,
+    getInstallSOP: getInstallSOP,
+    getSatSOP: getSatSOP,
+    getFatSOP: getFatSOP,
+    getSOPCheckState: getSOPCheckState,
+    setSOPCheckState: setSOPCheckState,
+    exportFullJSON: exportFullJSON,
+    importFullJSON: importFullJSON,
+    importProjectsFromCSV: importProjectsFromCSV,
+    addProject: addProject,
+    resetProject: resetProject,
+    on: on, off: off
+  };
+})();

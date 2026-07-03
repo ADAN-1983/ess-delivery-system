@@ -1,0 +1,106 @@
+{
+  "defaultProjectId": "3",
+  "projects": [
+    {
+      "id": "1",
+      "name": "东尚渔光互补0.94GW/188MWh光伏电站项目",
+      "capacity": "94MW/188MWh",
+      "batteryTech": "LFP",
+      "cabinetCount": "38",
+      "cabinetModel": "5.016MWh液冷集装箱",
+      "location": "江苏连云港",
+      "contractType": "EPC",
+      "status": "已交付",
+      "currentPhase": 9,
+      "phases": {
+        "1_rnd": { "completed": 100, "notes": "新品研发完成" },
+        "2_bd": { "completed": 100, "notes": "合同签订完成" },
+        "3_mfg": { "completed": 100, "notes": "全量交付完成" },
+        "4_logistics": { "completed": 100, "notes": "国内公路运输" },
+        "5_install": { "completed": 100, "notes": "安装验收通过" },
+        "6_commission": { "completed": 100, "notes": "SAT通过" },
+        "7_handover": { "completed": 100, "notes": "正式移交" },
+        "8_aftersales": { "completed": 100, "notes": "质保期届满" },
+        "9_ops": { "completed": 100, "notes": "" }
+      }
+    },
+    {
+      "id": "2",
+      "name": "新疆木垒600MWh储能电站项目",
+      "capacity": "150MW/600MWh",
+      "batteryTech": "LFP",
+      "cabinetCount": "120",
+      "cabinetModel": "1P104S-314Ah电池包",
+      "location": "新疆昌吉州",
+      "contractType": "EPC",
+      "status": "已交付",
+      "currentPhase": 9,
+      "phases": {
+        "1_rnd": { "completed": 100, "notes": "" },
+        "2_bd": { "completed": 100, "notes": "" },
+        "3_mfg": { "completed": 100, "notes": "" },
+        "4_logistics": { "completed": 100, "notes": "国内公路运输" },
+        "5_install": { "completed": 100, "notes": "" },
+        "6_commission": { "completed": 100, "notes": "" },
+        "7_handover": { "completed": 100, "notes": "" },
+        "8_aftersales": { "completed": 100, "notes": "质保期届满" },
+        "9_ops": { "completed": 100, "notes": "" }
+      }
+    },
+    {
+      "id": "3",
+      "name": "印度新德里ReNew 120MW/240MWh调峰电站",
+      "capacity": "120MW/240MWh",
+      "batteryTech": "LFP",
+      "cabinetCount": "48",
+      "cabinetModel": "ArcBank1.0-5.016MWh液冷预制舱",
+      "location": "印度新德里",
+      "contractType": "EPC",
+      "status": "交付中",
+      "currentPhase": 3,
+      "phases": {
+        "1_rnd": { "completed": 100, "notes": "型式试验通过，314Ah电芯" },
+        "2_bd": { "completed": 100, "notes": "EPC合同签订（2025-Q3）" },
+        "3_mfg": { "completed": 30, "notes": "首批16柜排产中，FAT待执行" },
+        "4_logistics": { "completed": 0, "notes": "国际海运（上海→孟买）计划中" },
+        "5_install": { "completed": 0, "notes": "" },
+        "6_commission": { "completed": 0, "notes": "" },
+        "7_handover": { "completed": 0, "notes": "" },
+        "8_aftersales": { "completed": 0, "notes": "" },
+        "9_ops": { "completed": 0, "notes": "" }
+      },
+      "delivery": {
+        "fatStandardHours": "8.75h",
+        "installStandardDays": "7天/柜",
+        "commissionStandardDays": "14天/批次(含7天试运行)",
+        "factoryLeadTime": "2-3月/批次(16柜)",
+        "shippingRoute": "上海→孟买(海运约25天+清关7天)",
+        "warrantyStart": "待定",
+        "warrantyEnd": "待定"
+      }
+    },
+    {
+      "id": "4",
+      "name": "印度安得拉邦225MW/450MWh风光储一体化工程",
+      "capacity": "225MW/450MWh",
+      "batteryTech": "LFP",
+      "cabinetCount": "90",
+      "cabinetModel": "ArcBank1.0-5.016MWh液冷预制舱",
+      "location": "印度安得拉邦",
+      "contractType": "BOO",
+      "status": "计划交付",
+      "currentPhase": 1,
+      "phases": {
+        "1_rnd": { "completed": 10, "notes": "需求分析阶段" },
+        "2_bd": { "completed": 0, "notes": "商务谈判进行中" },
+        "3_mfg": { "completed": 0, "notes": "" },
+        "4_logistics": { "completed": 0, "notes": "" },
+        "5_install": { "completed": 0, "notes": "" },
+        "6_commission": { "completed": 0, "notes": "" },
+        "7_handover": { "completed": 0, "notes": "" },
+        "8_aftersales": { "completed": 0, "notes": "" },
+        "9_ops": { "completed": 0, "notes": "" }
+      }
+    }
+  ]
+}

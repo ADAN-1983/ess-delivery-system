@@ -1,0 +1,112 @@
+{
+  "productName": "ArcBank1.0-5.016MWh液冷预制舱式储能系统",
+  "sopVersion": "rev01",
+  "phases": [
+    {
+      "id": "ins-1",
+      "name": "安装前准备",
+      "sortOrder": 1,
+      "checks": [
+        {"id": "ins-1-1", "item": "混凝土地基预埋10#槽钢，预埋槽钢牢固可靠且需接地", "standard": "接地电阻 < 4Ω", "pass": null, "notes": ""},
+        {"id": "ins-1-2", "item": "舱体基础尺寸规格 > 6,058mm × 2,438mm", "standard": "尺寸复核通过", "pass": null, "notes": ""},
+        {"id": "ins-1-3", "item": "表面平整，无焊渣或灰浆", "standard": "目视检查", "pass": null, "notes": ""},
+        {"id": "ins-1-4", "item": "电缆沟、检修口和爬梯预埋完成", "standard": "按图纸验收", "pass": null, "notes": ""},
+        {"id": "ins-1-5", "item": "进出线电缆和保护管预置", "standard": "规格型号核对", "pass": null, "notes": ""}
+      ]
+    },
+    {
+      "id": "ins-2",
+      "name": "吊装就位",
+      "sortOrder": 2,
+      "checks": [
+        {"id": "ins-2-1", "item": "额定起重量 ≥ 设备重量 + 吊索具重量（≥50t）", "standard": "吊车吨位确认", "pass": null, "notes": ""},
+        {"id": "ins-2-2", "item": "吊臂长度和作业半径满足要求", "standard": "起吊方案审批", "pass": null, "notes": ""},
+        {"id": "ins-2-3", "item": "指挥信号明确，人员就位", "standard": "十不吊原则检查", "pass": null, "notes": ""},
+        {"id": "ins-2-4", "item": "集装箱通过底部四个角件与地基垫平焊接", "standard": "四角件焊接固定", "pass": null, "notes": ""},
+        {"id": "ins-2-5", "item": "舱体底部悬空部分每间隔1000mm使用钢板垫实", "standard": "1000mm间隔垫实", "pass": null, "notes": ""},
+        {"id": "ins-2-6", "item": "箱体两侧靠近门体处4处接地点螺栓固定", "standard": "4处接地固定", "pass": null, "notes": ""}
+      ]
+    },
+    {
+      "id": "ins-3",
+      "name": "落位后检查",
+      "sortOrder": 3,
+      "checks": [
+        {"id": "ins-3-1", "item": "摆放位置按指定位置摆放平稳", "standard": "位置复核", "pass": null, "notes": ""},
+        {"id": "ins-3-2", "item": "水平平整度误差 ≤ 5mm", "standard": "≤ 5mm", "pass": null, "notes": ""},
+        {"id": "ins-3-3", "item": "每扇门可正常开启/关闭", "standard": "正常开关", "pass": null, "notes": ""},
+        {"id": "ins-3-4", "item": "箱体外观无油漆磕碰划伤", "standard": "无损伤", "pass": null, "notes": ""},
+        {"id": "ins-3-5", "item": "箱内元器件完好无损", "standard": "目视完好", "pass": null, "notes": ""}
+      ]
+    },
+    {
+      "id": "ins-4",
+      "name": "电气连接",
+      "sortOrder": 4,
+      "checks": [
+        {"id": "ins-4-1", "item": "确认6台高压箱内12个隔离开关均处于分断状态", "standard": "悬挂'禁止合闸'标识牌", "pass": null, "notes": ""},
+        {"id": "ins-4-2", "item": "直流电缆正极(棕色)负极(灰色)正确连接", "standard": "正极棕色，负极灰色", "pass": null, "notes": ""},
+        {"id": "ins-4-3", "item": "交流三相电缆：L1棕/L2黑/L3灰/N蓝/PE黄绿", "standard": "端子相序接线正确", "pass": null, "notes": ""},
+        {"id": "ins-4-4", "item": "RS485/CAN通讯线缆正确连接", "standard": "X7:10/9→PCS485; X8:2/1→PCS CAN", "pass": null, "notes": ""},
+        {"id": "ins-4-5", "item": "网线接入交换机与配电柜对应端口", "standard": "A→5号/B→6号网口", "pass": null, "notes": ""}
+      ]
+    },
+    {
+      "id": "ins-5",
+      "name": "接线后检查",
+      "sortOrder": 5,
+      "checks": [
+        {"id": "ins-5-1", "item": "安装状态与设计图纸一致", "standard": "图纸复核", "pass": null, "notes": ""},
+        {"id": "ins-5-2", "item": "安装孔位对齐，螺丝拧紧，扭力满足要求", "standard": "力矩确认", "pass": null, "notes": ""},
+        {"id": "ins-5-3", "item": "设备外观无损坏/锈蚀/掉漆，标签清晰可见", "standard": "目视检查", "pass": null, "notes": ""},
+        {"id": "ins-5-4", "item": "线缆防护层完好，穿管线缆软管完好", "standard": "线缆目视检查", "pass": null, "notes": ""},
+        {"id": "ins-5-5", "item": "电气连接与图纸一致，紧固无松动", "standard": "紧固确认", "pass": null, "notes": ""},
+        {"id": "ins-5-6", "item": "接地至少2处，接地排无锈蚀/污秽/变形，接地电阻 < 4Ω", "standard": "接地电阻 < 4Ω", "pass": null, "notes": ""},
+        {"id": "ins-5-7", "item": "所有开关处于关闭状态，断路器处于分闸", "standard": "断开状态确认", "pass": null, "notes": ""}
+      ]
+    },
+    {
+      "id": "ins-6",
+      "name": "接线后操作",
+      "sortOrder": 6,
+      "checks": [
+        {"id": "ins-6-1", "item": "对所有接线仔细全面检查，无漏接/无松动", "standard": "复核通过", "pass": null, "notes": ""},
+        {"id": "ins-6-2", "item": "配电柜出线孔及四周缝隙使用防火防水材料严密封堵", "standard": "封堵完成", "pass": null, "notes": ""},
+        {"id": "ins-6-3", "item": "电气防护挡板全部安装牢固", "standard": "安装到位", "pass": null, "notes": ""},
+        {"id": "ins-6-4", "item": "确保无工具/设备遗漏在集装箱内部", "standard": "清场确认", "pass": null, "notes": ""},
+        {"id": "ins-6-5", "item": "锁紧电气舱柜门和集装箱门后拔出钥匙，密封条完好", "standard": "锁闭确认", "pass": null, "notes": ""}
+      ]
+    },
+    {
+      "id": "ins-7",
+      "name": "安装质量验收",
+      "sortOrder": 7,
+      "checks": [
+        {"id": "ins-7-1", "item": "安装质量验收报告签字", "standard": "验收通过", "pass": null, "notes": ""},
+        {"id": "ins-7-2", "item": "隐蔽工程验收记录归档", "standard": "记录完整", "pass": null, "notes": ""},
+        {"id": "ins-7-3", "item": "安装偏差记录及处理", "standard": "偏差处理完毕", "pass": null, "notes": ""}
+      ]
+    }
+  ],
+  "m5e": {
+    "人Man": "安装人员资质核验、安全培训记录、持证上岗",
+    "机Machine": "吊车≥50t、液压钳、力矩扳手、万用表、绝缘工具",
+    "料Material": "直流电缆(2/0AWG)、交流电缆(三相五线)、通讯线缆(屏蔽双绞线)、通讯网线(超五类)",
+    "法Method": "A05安装手册rev01、吊装方案、接线图、检查清单",
+    "环Environment": "风力≤6级、无雨雪、能见度良好、温度适宜",
+    "测Measurement": "接地电阻测试仪、水平仪、万用表、力矩扳手(校核有效期内)"
+  },
+  "safetyRequirements": [
+    "绝缘手套、护目镜、绝缘鞋、反光背心、安全帽",
+    "高压箱隔离开关分断并挂牌",
+    "吊装区警戒线、十不吊原则",
+    "消防器材就位（灭火器）"
+  ],
+  "commonIssues": [
+    "基础不平整导致调平困难 → 提前复核基础尺寸",
+    "电缆相序接错 → 严格对照图纸，双人复核",
+    "通讯线缆屏蔽层未接地 → 检查屏蔽层接地",
+    "密封条损坏致IP防护失效 → 安装前检查密封条完整性",
+    "集装箱内遗留工具 → 清场签字确认制度"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "productName": "ArcBank1.0-5.016MWh液冷预制舱式储能系统",
+  "specs": {
+    "ratedEnergy": "5016 kWh",
+    "ratedCapacity": "3768 Ah",
+    "ratedVoltage": "1331.2 V DC",
+    "operatingVoltage": "1123.2V ~ 1500V DC",
+    "ratedPower": "2.508 MW (0.5P)",
+    "cellSpec": "3.2V/314Ah 磷酸铁锂",
+    "cooling": "液冷系统（英维克+三河同飞）",
+    "ipRating": "IP55",
+    "fireSystem": "气溶胶+细水雾"
+  },
+  "prerequisites": [
+    "设备已完成生产和组装",
+    "所有元器件已完成来料检验",
+    "BMS、PCS、EMS软件已烧录并测试",
+    "PCS已完成单体调试",
+    "EMS已完成基础配置",
+    "测试设备和仪器已校准并在有效期内",
+    "测试人员已到位并具备相应资质",
+    "FAT测试计划已获批准"
+  ],
+  "testItems": [
+    {"id": "fat-1", "name": "外观检查", "content": "集装箱、铭牌、标识、结构", "method": "全检", "standard": "无明显缺陷", "result": null, "notes": ""},
+    {"id": "fat-2", "name": "电气安全", "content": "绝缘、接地、耐压、HVL、IND、短路、SPD", "method": "全检", "standard": "符合标准", "result": null, "notes": ""},
+    {"id": "fat-3", "name": "BMS功能", "content": "采集、保护、均衡、通讯", "method": "100%验证", "standard": "功能正常", "result": null, "notes": ""},
+    {"id": "fat-4", "name": "热管理", "content": "液冷机组、温控、保护与联动、管路", "method": "全检", "standard": "功能正常", "result": null, "notes": ""},
+    {"id": "fat-5", "name": "消防系统", "content": "探测器、报警、灭火、联动", "method": "全检", "standard": "功能正常", "result": null, "notes": ""},
+    {"id": "fat-6", "name": "PCS接口及兼容性测试", "content": "BMS-PCS通信、数据交互、保护指令联动", "method": "100%验证", "standard": "功能正常", "result": null, "notes": ""},
+    {"id": "fat-7", "name": "EMS接口及兼容性测试", "content": "BMS-EMS通信、数据上传、告警同步", "method": "100%验证", "standard": "功能正常", "result": null, "notes": ""},
+    {"id": "fat-8", "name": "系统联调", "content": "整体功能、上下电、充放电", "method": "100%验证", "standard": "功能正常", "result": null, "notes": ""},
+    {"id": "fat-9", "name": "性能测试", "content": "容量、能量效率、额定功率、待机功耗", "method": "全检", "standard": "符合规格", "result": null, "notes": ""}
+  ],
+  "documentInfo": {
+    "docTitle": "ArcBank1.0_5016KWh储能系统DC舱FAT方案_印度_工厂版",
+    "buyer": "Sanchay Urja Private Limited",
+    "seller": "江苏中信博新能源科技股份有限公司",
+    "version": "A1.1 (2026-06-03)"
+  }
+}
