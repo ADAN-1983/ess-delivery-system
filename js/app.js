@@ -651,7 +651,9 @@ const App = (function() {
   function renderMfgFATContent() {
     var fatSOP = Store.getFatSOP();
     var phases = fatSOP.phases || [];
-    var specs = fatSOP.specs || {};
+    // 优先从当前项目读取specs，如果没有则使用FAT SOP中的默认值
+    var currentProject = Store.getSelectedProject();
+    var specs = (currentProject && currentProject.specs) ? currentProject.specs : (fatSOP.specs || {});
 
     // ① 规格参数紧凑横条（保持不变）
     var specsBar = '<div style="display:flex;flex-wrap:wrap;gap:6px 16px;padding:8px 12px;background:var(--c-gray-50);border-radius:6px;margin-bottom:12px;border:1px solid var(--c-gray-200);">';

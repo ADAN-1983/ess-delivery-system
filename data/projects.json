@@ -12,6 +12,15 @@
       "contractType": "EPC",
       "status": "已交付",
       "currentPhase": 9,
+      "specs": {
+        "ratedEnergy": "5016 kWh",
+        "ratedPower": "1250 kW",
+        "voltage": "1500 Vdc",
+        "weight": "约45T",
+        "dimensions": "6.058×2.438×2.896m",
+        "cooling": "液冷(40%乙二醇水溶液)",
+        "cell": "314Ah LFP"
+      },
       "phases": {
         "1_rnd": { "completed": 100, "notes": "新品研发完成" },
         "2_bd": { "completed": 100, "notes": "合同签订完成" },
@@ -35,6 +44,15 @@
       "contractType": "EPC",
       "status": "已交付",
       "currentPhase": 9,
+      "specs": {
+        "ratedEnergy": "1250 kWh",
+        "ratedPower": "625 kW",
+        "voltage": "1500 Vdc",
+        "weight": "约12T",
+        "dimensions": "2.438×1.200×2.200m",
+        "cooling": "液冷(40%乙二醇水溶液)",
+        "cell": "314Ah LFP"
+      },
       "phases": {
         "1_rnd": { "completed": 100, "notes": "" },
         "2_bd": { "completed": 100, "notes": "" },
@@ -58,6 +76,15 @@
       "contractType": "EPC",
       "status": "交付中",
       "currentPhase": 3,
+      "specs": {
+        "ratedEnergy": "5016 kWh",
+        "ratedPower": "1250 kW",
+        "voltage": "1500 Vdc",
+        "weight": "约45T",
+        "dimensions": "6.058×2.438×2.896m",
+        "cooling": "液冷(40%乙二醇水溶液)",
+        "cell": "314Ah LFP"
+      },
       "phases": {
         "1_rnd": { "completed": 100, "notes": "型式试验通过，314Ah电芯" },
         "2_bd": { "completed": 100, "notes": "EPC合同签订（2025-Q3）" },
@@ -90,6 +117,15 @@
       "contractType": "BOO",
       "status": "计划交付",
       "currentPhase": 1,
+      "specs": {
+        "ratedEnergy": "5016 kWh",
+        "ratedPower": "1250 kW",
+        "voltage": "1500 Vdc",
+        "weight": "约45T",
+        "dimensions": "6.058×2.438×2.896m",
+        "cooling": "液冷(40%乙二醇水溶液)",
+        "cell": "314Ah LFP"
+      },
       "phases": {
         "1_rnd": { "completed": 10, "notes": "需求分析阶段" },
         "2_bd": { "completed": 0, "notes": "商务谈判进行中" },

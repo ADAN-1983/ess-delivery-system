@@ -7,11 +7,11 @@
       "name": "安装前准备",
       "sortOrder": 1,
       "checks": [
-        {"id": "ins-1-1", "item": "混凝土地基预埋10#槽钢，预埋槽钢牢固可靠且需接地", "standard": "接地电阻 < 4Ω", "pass": null, "notes": ""},
-        {"id": "ins-1-2", "item": "舱体基础尺寸规格 > 6,058mm × 2,438mm", "standard": "尺寸复核通过", "pass": null, "notes": ""},
-        {"id": "ins-1-3", "item": "表面平整，无焊渣或灰浆", "standard": "目视检查", "pass": null, "notes": ""},
-        {"id": "ins-1-4", "item": "电缆沟、检修口和爬梯预埋完成", "standard": "按图纸验收", "pass": null, "notes": ""},
-        {"id": "ins-1-5", "item": "进出线电缆和保护管预置", "standard": "规格型号核对", "pass": null, "notes": ""}
+        {"id": "ins-1-1", "item": "预埋件及接地检查", "content": "混凝土地基预埋10#槽钢，预埋槽钢牢固可靠且需接地，接地铜排或接地线应符合设计要求或设计规范", "standard": "接地电阻 < 4Ω", "tool": "接地电阻测试仪、钢卷尺", "pass": null, "notes": ""},
+        {"id": "ins-1-2", "item": "基础尺寸复核", "content": "舱体基础尺寸规格 > 6,058mm × 2,438mm，允许偏差±20mm", "standard": "尺寸复核通过", "tool": "钢卷尺(50m)、经纬仪", "pass": null, "notes": ""},
+        {"id": "ins-1-3", "item": "基础表面检查", "content": "表面平整，无焊渣或灰浆，平整度误差≤5mm", "standard": "目视检查+水准仪", "tool": "水准仪", "pass": null, "notes": ""},
+        {"id": "ins-1-4", "item": "预埋设施验收", "content": "电缆沟、检修口和爬梯预埋完成，位置准确", "standard": "按图纸验收", "tool": "图纸、钢卷尺", "pass": null, "notes": ""},
+        {"id": "ins-1-5", "item": "进出线设施预置", "content": "进出线电缆和保护管预置到位，规格型号核对无误", "standard": "规格型号核对", "tool": "目视检查、卡尺", "pass": null, "notes": ""}
       ]
     },
     {
@@ -19,12 +19,12 @@
       "name": "吊装就位",
       "sortOrder": 2,
       "checks": [
-        {"id": "ins-2-1", "item": "额定起重量 ≥ 设备重量 + 吊索具重量（≥50t）", "standard": "吊车吨位确认", "pass": null, "notes": ""},
-        {"id": "ins-2-2", "item": "吊臂长度和作业半径满足要求", "standard": "起吊方案审批", "pass": null, "notes": ""},
-        {"id": "ins-2-3", "item": "指挥信号明确，人员就位", "standard": "十不吊原则检查", "pass": null, "notes": ""},
-        {"id": "ins-2-4", "item": "集装箱通过底部四个角件与地基垫平焊接", "standard": "四角件焊接固定", "pass": null, "notes": ""},
-        {"id": "ins-2-5", "item": "舱体底部悬空部分每间隔1000mm使用钢板垫实", "standard": "1000mm间隔垫实", "pass": null, "notes": ""},
-        {"id": "ins-2-6", "item": "箱体两侧靠近门体处4处接地点螺栓固定", "standard": "4处接地固定", "pass": null, "notes": ""}
+        {"id": "ins-2-1", "item": "吊车吨位确认", "content": "额定起重量 ≥ 设备重量 + 吊索具重量（≥50t），安全系数≥1.25", "standard": "吊车吨位确认", "tool": "吊装方案、载荷计算器", "pass": null, "notes": ""},
+        {"id": "ins-2-2", "item": "吊装方案审批", "content": "吊臂长度和作业半径满足要求，吊装方案已审批", "standard": "起吊方案审批", "tool": "吊装方案文档", "pass": null, "notes": ""},
+        {"id": "ins-2-3", "item": "吊装作业安全核查", "content": "指挥信号明确，人员就位，遵守十不吊原则", "standard": "十不吊原则检查", "tool": "对讲机、安全检查清单", "pass": null, "notes": ""},
+        {"id": "ins-2-4", "item": "舱体固定焊接", "content": "集装箱通过底部四个角件与地基垫平焊接，焊缝高度≥6mm", "standard": "四角件焊接固定", "tool": "焊机、焊缝检测仪", "pass": null, "notes": ""},
+        {"id": "ins-2-5", "item": "舱体垫实处理", "content": "舱体底部悬空部分每间隔1000mm使用钢板垫实，防止变形", "standard": "1000mm间隔垫实", "tool": "钢板、锤子", "pass": null, "notes": ""},
+        {"id": "ins-2-6", "item": "接地固定检查", "content": "箱体两侧靠近门体处4处接地点螺栓固定，紧固力矩符合要求", "standard": "4处接地固定", "tool": "扭矩扳手、万用表", "pass": null, "notes": ""}
       ]
     },
     {
@@ -32,11 +32,11 @@
       "name": "落位后检查",
       "sortOrder": 3,
       "checks": [
-        {"id": "ins-3-1", "item": "摆放位置按指定位置摆放平稳", "standard": "位置复核", "pass": null, "notes": ""},
-        {"id": "ins-3-2", "item": "水平平整度误差 ≤ 5mm", "standard": "≤ 5mm", "pass": null, "notes": ""},
-        {"id": "ins-3-3", "item": "每扇门可正常开启/关闭", "standard": "正常开关", "pass": null, "notes": ""},
-        {"id": "ins-3-4", "item": "箱体外观无油漆磕碰划伤", "standard": "无损伤", "pass": null, "notes": ""},
-        {"id": "ins-3-5", "item": "箱内元器件完好无损", "standard": "目视完好", "pass": null, "notes": ""}
+        {"id": "ins-3-1", "item": "摆放位置复核", "content": "摆放位置按指定位置摆放平稳，轴线偏差≤10mm", "standard": "位置复核", "tool": "经纬仪、钢卷尺", "pass": null, "notes": ""},
+        {"id": "ins-3-2", "item": "水平平整度检查", "content": "水平平整度误差 ≤ 5mm，使用水平仪四角测量", "standard": "≤ 5mm", "tool": "水平仪", "pass": null, "notes": ""},
+        {"id": "ins-3-3", "item": "舱门开关检查", "content": "每扇门可正常开启/关闭，密封条完好，锁具灵活", "standard": "正常开关", "tool": "目视检查、手动力测试", "pass": null, "notes": ""},
+        {"id": "ins-3-4", "item": "箱体外观检查", "content": "箱体外观无油漆磕碰划伤，涂层厚度符合规范", "standard": "无损伤", "tool": "涂层测厚仪、目视", "pass": null, "notes": ""},
+        {"id": "ins-3-5", "item": "箱内元器件检查", "content": "箱内元器件完好无损，标识清晰，连接牢固", "standard": "目视完好", "tool": "目视检查、万用表", "pass": null, "notes": ""}
       ]
     },
     {
@@ -44,11 +44,11 @@
       "name": "电气连接",
       "sortOrder": 4,
       "checks": [
-        {"id": "ins-4-1", "item": "确认6台高压箱内12个隔离开关均处于分断状态", "standard": "悬挂'禁止合闸'标识牌", "pass": null, "notes": ""},
-        {"id": "ins-4-2", "item": "直流电缆正极(棕色)负极(灰色)正确连接", "standard": "正极棕色，负极灰色", "pass": null, "notes": ""},
-        {"id": "ins-4-3", "item": "交流三相电缆：L1棕/L2黑/L3灰/N蓝/PE黄绿", "standard": "端子相序接线正确", "pass": null, "notes": ""},
-        {"id": "ins-4-4", "item": "RS485/CAN通讯线缆正确连接", "standard": "X7:10/9→PCS485; X8:2/1→PCS CAN", "pass": null, "notes": ""},
-        {"id": "ins-4-5", "item": "网线接入交换机与配电柜对应端口", "standard": "A→5号/B→6号网口", "pass": null, "notes": ""}
+        {"id": "ins-4-1", "item": "隔离开关状态确认", "content": "确认6台高压箱内12个隔离开关均处于分断状态，悬挂'禁止合闸'标识牌", "standard": "悬挂'禁止合闸'标识牌", "tool": "目视检查、标识牌", "pass": null, "notes": ""},
+        {"id": "ins-4-2", "item": "直流电缆连接", "content": "直流电缆正极(棕色)负极(灰色)正确连接，极性无误", "standard": "正极棕色，负极灰色", "tool": "万用表、相序表", "pass": null, "notes": ""},
+        {"id": "ins-4-3", "item": "交流电缆连接", "content": "交流三相电缆：L1棕/L2黑/L3灰/N蓝/PE黄绿，相序正确", "standard": "端子相序接线正确", "tool": "相序表、万用表", "pass": null, "notes": ""},
+        {"id": "ins-4-4", "item": "通讯线缆连接", "content": "RS485/CAN通讯线缆正确连接，X7:10/9→PCS485; X8:2/1→PCS CAN", "standard": "通讯线缆接线正确", "tool": "通讯测试仪、万用表", "pass": null, "notes": ""},
+        {"id": "ins-4-5", "item": "网线连接检查", "content": "网线接入交换机与配电柜对应端口，A→5号/B→6号网口", "standard": "网口连接正确", "tool": "网络测试仪、笔记本电脑", "pass": null, "notes": ""}
       ]
     },
     {
@@ -56,13 +56,13 @@
       "name": "接线后检查",
       "sortOrder": 5,
       "checks": [
-        {"id": "ins-5-1", "item": "安装状态与设计图纸一致", "standard": "图纸复核", "pass": null, "notes": ""},
-        {"id": "ins-5-2", "item": "安装孔位对齐，螺丝拧紧，扭力满足要求", "standard": "力矩确认", "pass": null, "notes": ""},
-        {"id": "ins-5-3", "item": "设备外观无损坏/锈蚀/掉漆，标签清晰可见", "standard": "目视检查", "pass": null, "notes": ""},
-        {"id": "ins-5-4", "item": "线缆防护层完好，穿管线缆软管完好", "standard": "线缆目视检查", "pass": null, "notes": ""},
-        {"id": "ins-5-5", "item": "电气连接与图纸一致，紧固无松动", "standard": "紧固确认", "pass": null, "notes": ""},
-        {"id": "ins-5-6", "item": "接地至少2处，接地排无锈蚀/污秽/变形，接地电阻 < 4Ω", "standard": "接地电阻 < 4Ω", "pass": null, "notes": ""},
-        {"id": "ins-5-7", "item": "所有开关处于关闭状态，断路器处于分闸", "standard": "断开状态确认", "pass": null, "notes": ""}
+        {"id": "ins-5-1", "item": "安装状态复核", "content": "安装状态与设计图纸一致，逐项核对", "standard": "图纸复核", "tool": "设计图纸、目视检查", "pass": null, "notes": ""},
+        {"id": "ins-5-2", "item": "螺丝紧固检查", "content": "安装孔位对齐，螺丝拧紧，扭力满足要求，做力矩标记", "standard": "力矩确认", "tool": "扭矩扳手、油漆笔", "pass": null, "notes": ""},
+        {"id": "ins-5-3", "item": "设备外观检查", "content": "设备外观无损坏/锈蚀/掉漆，标签清晰可见", "standard": "目视检查", "tool": "目视检查、涂层测厚仪", "pass": null, "notes": ""},
+        {"id": "ins-5-4", "item": "线缆防护检查", "content": "线缆防护层完好，穿管线缆软管完好，无破损", "standard": "线缆目视检查", "tool": "目视检查、万用表", "pass": null, "notes": ""},
+        {"id": "ins-5-5", "item": "电气连接复核", "content": "电气连接与图纸一致，紧固无松动，绝缘电阻测试≥20MΩ", "standard": "紧固确认", "tool": "扭矩扳手、兆欧表", "pass": null, "notes": ""},
+        {"id": "ins-5-6", "item": "接地系统检查", "content": "接地至少2处，接地排无锈蚀/污秽/变形，接地电阻 < 4Ω", "standard": "接地电阻 < 4Ω", "tool": "接地电阻测试仪、万用表", "pass": null, "notes": ""},
+        {"id": "ins-5-7", "item": "开关状态确认", "content": "所有开关处于关闭状态，断路器处于分闸，悬挂标识", "standard": "断开状态确认", "tool": "目视检查、标识牌", "pass": null, "notes": ""}
       ]
     },
     {
@@ -70,11 +70,11 @@
       "name": "接线后操作",
       "sortOrder": 6,
       "checks": [
-        {"id": "ins-6-1", "item": "对所有接线仔细全面检查，无漏接/无松动", "standard": "复核通过", "pass": null, "notes": ""},
-        {"id": "ins-6-2", "item": "配电柜出线孔及四周缝隙使用防火防水材料严密封堵", "standard": "封堵完成", "pass": null, "notes": ""},
-        {"id": "ins-6-3", "item": "电气防护挡板全部安装牢固", "standard": "安装到位", "pass": null, "notes": ""},
-        {"id": "ins-6-4", "item": "确保无工具/设备遗漏在集装箱内部", "standard": "清场确认", "pass": null, "notes": ""},
-        {"id": "ins-6-5", "item": "锁紧电气舱柜门和集装箱门后拔出钥匙，密封条完好", "standard": "锁闭确认", "pass": null, "notes": ""}
+        {"id": "ins-6-1", "item": "接线全面复核", "content": "对所有接线仔细全面检查，无漏接/无松动，双人复核", "standard": "复核通过", "tool": "目视检查、扭矩扳手", "pass": null, "notes": ""},
+        {"id": "ins-6-2", "item": "防火封堵施工", "content": "配电柜出线孔及四周缝隙使用防火防水材料严密封堵", "standard": "封堵完成", "tool": "防火泥、封堵材料", "pass": null, "notes": ""},
+        {"id": "ins-6-3", "item": "电气护板安装", "content": "电气防护挡板全部安装牢固，无松动", "standard": "安装到位", "tool": "螺丝刀、目视检查", "pass": null, "notes": ""},
+        {"id": "ins-6-4", "item": "清场确认", "content": "确保无工具/设备遗漏在集装箱内部，签署清场单", "standard": "清场确认", "tool": "清场清单、签字笔", "pass": null, "notes": ""},
+        {"id": "ins-6-5", "item": "舱门锁闭检查", "content": "锁紧电气舱柜门和集装箱门后拔出钥匙，密封条完好", "standard": "锁闭确认", "tool": "钥匙、目视检查", "pass": null, "notes": ""}
       ]
     },
     {
@@ -82,9 +82,9 @@
       "name": "安装质量验收",
       "sortOrder": 7,
       "checks": [
-        {"id": "ins-7-1", "item": "安装质量验收报告签字", "standard": "验收通过", "pass": null, "notes": ""},
-        {"id": "ins-7-2", "item": "隐蔽工程验收记录归档", "standard": "记录完整", "pass": null, "notes": ""},
-        {"id": "ins-7-3", "item": "安装偏差记录及处理", "standard": "偏差处理完毕", "pass": null, "notes": ""}
+        {"id": "ins-7-1", "item": "验收报告签署", "content": "安装质量验收报告签字，各方签署确认", "standard": "验收通过", "tool": "验收报告模板、签字笔", "pass": null, "notes": ""},
+        {"id": "ins-7-2", "item": "隐蔽工程验收", "content": "隐蔽工程验收记录归档，照片及视频存档", "standard": "记录完整", "tool": "相机、档案袋", "pass": null, "notes": ""},
+        {"id": "ins-7-3", "item": "安装偏差处理", "content": "安装偏差记录及处理，偏差超标项整改闭环", "standard": "偏差处理完毕", "tool": "偏差记录表、整改通知", "pass": null, "notes": ""}
       ]
     }
   ],
