@@ -92,22 +92,22 @@ const App = (function() {
     var pInP = total > 0 ? Math.round(inProgress / total * 100) : 0;
     var pPla = total > 0 ? Math.round(planned / total * 100) : 0;
 
-    return '<div class="delivery-overview" title="项目交付总览: 已交储'+delivered+'个('+pDel+'%) | 交付中'+inProgress+'个('+pInP+'%) | 待交付'+planned+'个('+pPla+'%)">' +
+    return '<div class="delivery-overview" title="项目交付总览: 已交付'+delivered+'个('+pDel+'%) | 交付中'+inProgress+'个('+pInP+'%) | 待交付'+planned+'个('+pPla+'%)">' +
       '<span class="delivery-overview-title">交付概览</span>' +
       '<div class="delivery-bars">' +
         '<div class="delivery-bar-item">' +
           '<div class="delivery-bar bar-delivered" style="height:'+hDel+'px"></div>' +
-          '<span class="delivery-bar-count">'+delivered+'</span>' +
-          '<span class="delivery-bar-label">已交储</span>' +
+          '<span class="delivery-bar-count count-delivered">'+delivered+'</span>' +
+          '<span class="delivery-bar-label">已交付</span>' +
         '</div>' +
         '<div class="delivery-bar-item">' +
           '<div class="delivery-bar bar-inprogress" style="height:'+hInP+'px"></div>' +
-          '<span class="delivery-bar-count">'+inProgress+'</span>' +
+          '<span class="delivery-bar-count count-inprogress">'+inProgress+'</span>' +
           '<span class="delivery-bar-label">交付中</span>' +
         '</div>' +
         '<div class="delivery-bar-item">' +
           '<div class="delivery-bar bar-planned" style="height:'+hPla+'px"></div>' +
-          '<span class="delivery-bar-count">'+planned+'</span>' +
+          '<span class="delivery-bar-count count-planned">'+planned+'</span>' +
           '<span class="delivery-bar-label">待交付</span>' +
         '</div>' +
       '</div>' +
