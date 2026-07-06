@@ -163,7 +163,8 @@ const App = (function() {
       if (tabKey === '6_commission') {
         initSATAllPassedState();
         drawSATChart();
-        // 初始化效率卡片（默认显示第一个子标签sat-1的数据）
+        // 初始化风险卡片与效率卡片（默认显示第一个子标签sat-1的数据）
+        refreshCommissionRiskCard('sat-1');
         refreshCommissionEfficiencyCard('sat-1');
       }
       if (tabKey === '4_logistics') {
@@ -1285,45 +1286,61 @@ const App = (function() {
   // ========== Tab6 风险联动数据 & 刷新函数 ==========
   var commissionRiskMap = {
     'sat-1': [
-      {level:'medium',text:'舱体变形/涂层损伤→FAT前外观全检'},
-      {level:'low',text:'铭牌参数不符→与设计图纸逐项核对'}
+      {level:'high',text:'图纸版本不一致→差异项发DCR闭环后再开工'},
+      {level:'high',text:'安全交底未签字→禁止进入高压区作业'},
+      {level:'medium',text:'LOTO流程未执行→高压操作必须上锁挂牌'},
+      {level:'low',text:'合规性风险→当地调试规程需提前备案'}
     ],
     'sat-2': [
-      {level:'high',text:'绝缘不达标→排查受潮/污损点并干燥处理'},
-      {level:'high',text:'极性接反风险→万用表确认后再通电'},
-      {level:'medium',text:'环境湿度影响→记录温湿度必要时修正读数'}
+      {level:'high',text:'接地电阻>4Ω→排查跨接线断裂/腐蚀点'},
+      {level:'high',text:'动力线束虚接→带电操作前必须验电'},
+      {level:'medium',text:'消防灭火剂储量不足→补充至≥设计值90%'},
+      {level:'low',text:'液冷管路微渗漏→压力测试确认无泄漏'}
     ],
     'sat-3': [
-      {level:'high',text:'耐压击穿→绝缘不合格禁止做耐压试验'},
-      {level:'high',text:'泄漏电流超标→检查绝缘+环境干燥'},
-      {level:'medium',text:'耐压后绝缘下降→复测确认≥试验前90%'}
+      {level:'high',text:'PACK绝缘<500MΩ→抽检20%全检重点螺栓端子'},
+      {level:'high',text:'PCS DC侧绝缘低→检查内部电容残留电荷'},
+      {level:'medium',text:'高温高湿环境绝缘偏低→≥0.5MΩ/kV为合格'},
+      {level:'low',text:'测试前放电不充分→静置≥15min再测'}
     ],
     'sat-4': [
-      {level:'high',text:'通讯不通→Modbus地址/波特率/接线逐一排查'},
-      {level:'medium',text:'数据丢包→网线质量/屏蔽/长度<100m'},
-      {level:'low',text:'SCADA响应慢>2s→优化轮询周期'}
+      {level:'high',text:'CAN总线参数不匹配→500Kbps/CAN2.0B/无校验'},
+      {level:'high',text:'涉网定值未备案→需电网调度审批后方可修改'},
+      {level:'medium',text:'EMS通信地址冲突→确保所有设备地址唯一'},
+      {level:'low',text:'温控阈值与BMS不匹配→统一配置标准'}
     ],
     'sat-5': [
-      {level:'high',text:'充电效率低<93%→检查PCS变换效率+BMS均衡'},
-      {level:'high',text:'温升超15K→热成像定位热点+风道检查'},
-      {level:'medium',text:'容量衰减异常→单体电压一致性分析'}
+      {level:'high',text:'UPS后备续航不足→电池更换或检修'},
+      {level:'medium',text:'消防联动误喷风险→调试期间关闭灭火装置'},
+      {level:'medium',text:'动环传感器安装位置偏差→按设计图纸调整'},
+      {level:'low',text:'除湿机湿度校准偏移→重新标定传感器'}
     ],
     'sat-6': [
-      {level:'high',text:'保护拒动/误动→模拟故障验证每个保护点'},
-      {level:'high',text:'反极性损坏→硬件防反接+软件检测'},
-      {level:'medium',text:'通信中断不停机→BMS-PCS断链测试'}
+      {level:'high',text:'预充未完成即合闸→严格遵循先低压后高压时序'},
+      {level:'high',text:'HVL互锁失效→立即停机排查回路完整性'},
+      {level:'high',text:'短路保护拒动→检查熔断器规格和接触器状态'},
+      {level:'medium',text:'RCD脱扣异常→复位后确认系统无漏电'}
     ],
     'sat-7': [
-      {level:'high',text:'并网失败→同期条件(电压/频率/相序)逐项核'},
-      {level:'high',text:'防孤岛失效→断开并网点测量脱网时间≤2s'},
-      {level:'medium',text:'电能质量超标→THD/频率偏差全面检测'},
-      {level:'low',text:'LVRT不通过→模拟电网跌落测试(推荐)'}
+      {level:'high',text:'电芯温差>8℃→立即停机检查液冷流量分布'},
+      {level:'high',text:'实际容量<95%额定→单体电压一致性深度分析'},
+      {level:'medium',text:'往返效率低于设计值→检查PCS变换损耗+BMS自耗'},
+      {level:'low',text:'响应时间超限→优化通信链路和指令队列'}
     ],
     'sat-8': [
-      {level:'high',text:'可用率<99%→故障根因分析+立即整改'},
-      {level:'medium',text:'试运行中断→72h连续运行重新计时'},
-      {level:'medium',text:'噪音超标→昼60dB/夜55dB限值'},
-      {level:'low',text:'热分布不均→调整空调出风口/液冷流量'}
+      {level:'high',text:'孤岛保护失效→测量脱网时间≤规定值(通常2s)'},
+      {level:'high',text:'THD谐波>5%→加装滤波器或调整PCS参数'},
+      {level:'medium',text:'AGC/AVC响应超时→检查调度接口和网络延迟'},
+      {level:'low',text:'消防联动信号丢失→检查硬接线回路'}
+    ],
+    'sat-9': [
+      {level:'high',text:'偏差项未闭环→所有不合格项必须有整改记录'},
+      {level:'medium',text:'耐压复测绝缘下降→≥试验前90%为合格'},
+      {level:'low',text:'资料归档不全→全套记录可追溯方可签字'}
+    ],
+    'sat-10': [
+      {level:'medium',text:'型式试验报告过期→联系厂家提供最新有效报告'},
+      {level:'low',text:'EMC报告缺失→补充EN 61000系列认证文件'}
     ]
   };
 
@@ -1341,50 +1358,64 @@ const App = (function() {
   // ========== Tab6 资源与效率联动数据 & 刷新函数 ==========
   var commissionEfficiencyMap = {
     'sat-1': [
-      {name:'外观检查一次通过率', value:'94%', target:'≥98%', status:'warn'},
-      {name:'舱体尺寸精度达标率', value:'96%', target:'≥98%', status:'ok'},
-      {name:'铭牌参数准确率', value:'100%', target:'100%', status:'ok'},
-      {name:'关键资源到位率', value:'78%', target:'≥85%', status:'high'}
+      {name:'资料审查完成率', value:'—', target:'100%', status:'pending'},
+      {name:'安全交底签字率', value:'—', target:'100%', status:'pending'},
+      {name:'合规性确认通过率', value:'—', target:'100%', status:'pending'},
+      {name:'警示区设置完成率', value:'—', target:'100%', status:'pending'}
     ],
     'sat-2': [
-      {name:'绝缘电阻测试一次合格率', value:'91%', target:'≥95%', status:'warn'},
-      {name:'极性检查准确率', value:'98%', target:'100%', status:'ok'},
-      {name:'绝缘测试记录完整率', value:'95%', target:'100%', status:'warn'},
-      {name:'环境温湿度合规率', value:'88%', target:'≥95%', status:'warn'}
+      {name:'外观检查一次合格率', value:'—', target:'≥95%', status:'pending'},
+      {name:'线束连接检查通过率', value:'—', target:'100%', status:'pending'},
+      {name:'接地电阻合格率', value:'—', target:'100%', status:'pending'},
+      {name:'消防系统就绪率', value:'—', target:'100%', status:'pending'}
     ],
     'sat-3': [
-      {name:'耐压试验一次通过率', value:'93%', target:'≥98%', status:'warn'},
-      {name:'试验设备校准合规率', value:'100%', target:'100%', status:'ok'}
+      {name:'PACK绝缘一次合格率', value:'—', target:'≥95%', status:'pending'},
+      {name:'BANK/DCPM/PCS绝缘合格率', value:'—', target:'≥95%', status:'pending'},
+      {name:'测试仪表校准合规率', value:'—', target:'100%', status:'pending'},
+      {name:'安全前置条件满足率', value:'—', target:'100%', status:'pending'}
     ],
     'sat-4': [
-      {name:'CAN通讯故障率', value:'3%', target:'≤1%', status:'high'},
-      {name:'Modbus通信成功率', value:'95%', target:'≥98%', status:'warn'},
-      {name:'SCADA数据刷新时延', value:'1.8s', target:'≤2s', status:'ok'},
-      {name:'通讯协议一致性达标率', value:'92%', target:'≥98%', status:'warn'}
+      {name:'软件升级成功率', value:'—', target:'100%', status:'pending'},
+      {name:'参数配置准确率', value:'—', target:'100%（双人复核）', status:'pending'},
+      {name:'通信链路建立成功率', value:'—', target:'100%', status:'pending'},
+      {name:'涉网定值备案完成率', value:'—', target:'100%', status:'pending'}
     ],
     'sat-5': [
-      {name:'充电效率达标率', value:'93.5%', target:'≥93%', status:'ok'},
-      {name:'温升测试合格率', value:'89%', target:'≥95%', status:'high'},
-      {name:'容量测试准确率', value:'96%', target:'≥98%', status:'warn'},
-      {name:'BMS均衡效果达标率', value:'91%', target:'≥95%', status:'warn'}
+      {name:'UPS带载测试通过率', value:'—', target:'100%', status:'pending'},
+      {name:'低压系统调试通过率', value:'—', target:'≥98%', status:'pending'},
+      {name:'传感器功能正常率', value:'—', target:'100%', status:'pending'},
+      {name:'辅助系统就绪率', value:'—', target:'100%', status:'pending'}
     ],
     'sat-6': [
-      {name:'保护动作正确率', value:'97%', target:'100%', status:'warn'},
-      {name:'反极性保护测试通过率', value:'100%', target:'100%', status:'ok'},
-      {name:'通信中断保护触发率', value:'98%', target:'100%', status:'ok'},
-      {name:'保护定值准确率', value:'95%', target:'100%', status:'warn'}
+      {name:'预充回路测试通过率', value:'—', target:'100%', status:'pending'},
+      {name:'高压合闸无冲击率', value:'—', target:'100%', status:'pending'},
+      {name:'保护功能验证通过率', value:'—', target:'100%', status:'pending'},
+      {name:'HVL/IND/短路保护正确率', value:'—', target:'100%', status:'pending'}
     ],
     'sat-7': [
-      {name:'并网测试一次通过率', value:'88%', target:'≥95%', status:'high'},
-      {name:'防孤岛保护测试通过率', value:'92%', target:'≥98%', status:'warn'},
-      {name:'电能质量测试合格率', value:'94%', target:'≥98%', status:'warn'},
-      {name:'LVRT测试通过率', value:'90%', target:'≥95%', status:'warn'}
+      {name:'小功率试运行通过率', value:'—', target:'100%', status:'pending'},
+      {name:'阶梯升功率测试通过率', value:'—', target:'≥95%', status:'pending'},
+      {name:'额定功率循环通过率', value:'—', target:'≥95%', status:'pending'},
+      {name:'系统往返效率达标率', value:'—', target:'≥设计值', status:'pending'}
     ],
     'sat-8': [
-      {name:'试运行可用率', value:'98.5%', target:'≥99%', status:'warn'},
-      {name:'72h连续运行成功率', value:'85%', target:'100%', status:'high'},
-      {name:'噪音测试达标率', value:'91%', target:'≥95%', status:'warn'},
-      {name:'热分布均匀性达标率', value:'93%', target:'≥95%', status:'warn'}
+      {name:'孤岛保护测试通过率', value:'—', target:'100%', status:'pending'},
+      {name:'谐波THD达标率', value:'—', target:'≤5%', status:'pending'},
+      {name:'AGC/AVC响应合格率', value:'—', target:'≥95%', status:'pending'},
+      {name:'系统联动测试通过率', value:'—', target:'≥98%', status:'pending'}
+    ],
+    'sat-9': [
+      {name:'SAT验收项目通过率', value:'—', target:'≥95%', status:'pending'},
+      {name:'偏差项闭环率', value:'—', target:'100%', status:'pending'},
+      {name:'资料归档完整率', value:'—', target:'100%', status:'pending'},
+      {name:'见证签字完成率', value:'—', target:'100%', status:'pending'}
+    ],
+    'sat-10': [
+      {name:'型式试验报告核对完成率', value:'—', target:'100%', status:'pending'},
+      {name:'报告有效期覆盖率', value:'—', target:'100%', status:'pending'},
+      {name:'认证文件齐全率', value:'—', target:'100%', status:'pending'},
+      {name:'EMC报告符合率', value:'—', target:'100%', status:'pending'}
     ]
   };
 

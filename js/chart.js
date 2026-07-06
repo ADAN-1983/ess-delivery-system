@@ -206,13 +206,13 @@ var ProgressChart = (function() {
     if (!project) return { planned: [], actual: [] };
     var isDelivered = project.status === '已交付';
     var isPlanned = project.status === '计划交付';
-    var phases = ['外观检查', '绝缘测试', '耐压试验', 'TMS测试', 'FFS测试', '外观复查', '并网试验', '72h试运行'];
-    var phaseKeys = ['sat-1', 'sat-2', 'sat-3', 'sat-4', 'sat-5', 'sat-6', 'sat-7', 'sat-8'];
+    var phases = ['调试准备', '外观线束', '绝缘检测', '软件配置', '低压调试', '高压调试', '充放电', '并网联动', 'SAT验收', '型式备查'];
+    var phaseKeys = ['sat-1', 'sat-2', 'sat-3', 'sat-4', 'sat-5', 'sat-6', 'sat-7', 'sat-8', 'sat-9', 'sat-10'];
     var warnings = [];
     var result = {
-      planned: phases.map(function(ph) { return { label: ph, value: isDelivered ? 100 : (isPlanned ? 0 : 30) }; }),
+      planned: phases.map(function(ph) { return { label: ph, value: isDelivered ? 100 : (isPlanned ? 0 : 50) }; }),
       actual: phaseKeys.map(function(key, i) {
-        var val = isDelivered ? 100 : (isPlanned ? 0 : Math.max(0, 30 - i * 3));
+        var val = isDelivered ? 100 : (isPlanned ? 0 : Math.max(0, 50 - i * 5));
         var sop = window.Store ? Store.getSatSOP() : null;
         if (sop && sop.phases) {
           var pd = sop.phases.find(function(p) { return p.id === key; });
