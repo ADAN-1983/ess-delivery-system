@@ -68,7 +68,50 @@ const App = (function() {
       <div class="proj-param"><span class="label">电池</span><span class="value">${p.batteryTech}</span></div>
       <div class="proj-param"><span class="label">地点</span><span class="value">${p.location}</span></div>
       <div class="proj-param"><span class="label">合同</span><span class="value">${p.contractType}</span></div>
-      <span class="proj-status ${statusClass}">${p.status}</span>`;
+      <span class="proj-status ${statusClass}">${p.status}</span>` + renderDeliveryOverview();
+  }
+
+  // ========== L1 交付状态概览柱状图 ==========
+  function renderDeliveryOverview() {
+    var projects = Store.getAllProjects();
+    var total = projects.length;
+    if (total === 0) return '';
+    var delivered = 0, inProgress = 0, planned = 0;
+    for (var i = 0; i < total; i++) {
+      var s = projects[i].status;
+      if (s === '已交付') delivered++;
+      else if (s === '交付中') inProgress++;
+      else planned++;
+    }
+    var maxCount = Math.max(delivered, inProgress, planned, 1);
+    // 柱高按比例：最高=22px，最低=4px
+    var hDel = Math.max(4, Math.round(delivered / maxCount * 22));
+    var hInP = Math.max(4, Math.round(inProgress / maxCount * 22));
+    var hPla = Math.max(4, Math.round(planned / maxCount * 22));
+    var pDel = total > 0 ? Math.round(delivered / total * 100) : 0;
+    var pInP = total > 0 ? Math.round(inProgress / total * 100) : 0;
+    var pPla = total > 0 ? Math.round(planned / total * 100) : 0;
+
+    return '<div class="delivery-overview" title="项目交付总览: 已交储'+delivered+'个('+pDel+'%) | 交付中'+inProgress+'个('+pInP+'%) | 待交付'+planned+'个('+pPla+'%)">' +
+      '<span class="delivery-overview-title">交付概览</span>' +
+      '<div class="delivery-bars">' +
+        '<div class="delivery-bar-item">' +
+          '<div class="delivery-bar bar-delivered" style="height:'+hDel+'px"></div>' +
+          '<span class="delivery-bar-count">'+delivered+'</span>' +
+          '<span class="delivery-bar-label">已交储</span>' +
+        '</div>' +
+        '<div class="delivery-bar-item">' +
+          '<div class="delivery-bar bar-inprogress" style="height:'+hInP+'px"></div>' +
+          '<span class="delivery-bar-count">'+inProgress+'</span>' +
+          '<span class="delivery-bar-label">交付中</span>' +
+        '</div>' +
+        '<div class="delivery-bar-item">' +
+          '<div class="delivery-bar bar-planned" style="height:'+hPla+'px"></div>' +
+          '<span class="delivery-bar-count">'+planned+'</span>' +
+          '<span class="delivery-bar-label">待交付</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
   }
 
   // ==================== L2 进度轴 ====================
@@ -3838,7 +3881,7 @@ const App = (function() {
   function onProjectChanged(){updateProjectParams();}
   function onProgressChanged(){renderProgressAxis();renderFoldableCards();}
   function onDataChanged(){renderFoldableCards();}
-  function refreshAll(){renderProjectSelector();renderProgressAxis();renderTabNav();switchTab(currentTab);renderFoldableCards();}
+  function refreshAll(){renderProjectSelector();updateProjectParams();renderProgressAxis();renderTabNav();switchTab(currentTab);renderFoldableCards();}
 
   // ========= 折叠卡片切换 =========
   function toggleCardFold(headerEl) {
@@ -4034,6 +4077,7 @@ const App = (function() {
     handleSurveyClose,renderSurveyRiskDashboard,openContactEmail,
     buildSurveyEmailBody,downloadSurveyCSV,
     sendEmailViaAPI,fallbackMailto,uploadCSVToCloud,checkBackendAvailable,
+    updateProjectParams,renderDeliveryOverview,
     drawMfgChart,drawInstallChart,drawSATChart,drawLogisticsChart,
     toast
   };

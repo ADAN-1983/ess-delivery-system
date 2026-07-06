@@ -115,6 +115,56 @@ body {
 .proj-status.in-progress { background: rgba(255,193,7,0.25); color: #ffc107; }
 .proj-status.planned { background: rgba(255,255,255,0.15); color: #adb5bd; }
 
+/* ========== 交付状态概览柱状图（L1头部） ========== */
+.delivery-overview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255,255,255,0.18);
+}
+.delivery-overview-title {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+.delivery-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+}
+.delivery-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 28px;
+}
+.delivery-bar {
+  width: 18px;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.3s ease;
+  min-height: 3px;
+}
+.delivery-bar-label {
+  font-size: 9px;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  font-weight: 400;
+}
+.delivery-bar-count {
+  font-size: 10px;
+  color: rgba(255,255,255,0.9);
+  font-weight: 500;
+}
+/* 三种状态色彩 */
+.bar-delivered { background: linear-gradient(to top, #16a34a, #4ade80); }
+.bar-inprogress { background: linear-gradient(to top, #d97706, #fbbf24); }
+.bar-planned   { background: linear-gradient(to top, #6b7280, #9ca3af); }
+
 .header-actions {
   display: flex;
   gap: 6px;
