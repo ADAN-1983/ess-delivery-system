@@ -1091,3 +1091,97 @@ body {
   min-width: 0;
 }
 
+/* ========== 培训管理系统专栏 ========== */
+.training-system { margin-top: 10px; }
+.training-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+.tr-nav-btn { padding: 6px 14px; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all .15s; }
+.tr-nav-btn:hover { color: var(--c-primary); border-color: var(--c-primary); }
+.tr-nav-btn.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+.training-module-area { min-height: 200px; }
+.tr-section { margin-bottom: 14px; }
+.tr-section-title { font-size: 14px; color: var(--c-primary); margin: 12px 0 8px; border-left: 3px solid var(--c-primary); padding-left: 8px; }
+.tr-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.tr-hint { color: #94a3b8; font-size: 12px; margin: 8px 0 0; }
+.tr-empty { color: #94a3b8; font-size: 13px; padding: 16px; text-align: center; background: #f8fafc; border-radius: 6px; }
+
+/* 课程卡片 */
+.tr-course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.tr-course-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.tr-course-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.tr-course-name { font-weight: 600; color: #1e293b; flex: 1; }
+.tr-course-dur { color: #64748b; font-size: 12px; }
+.tr-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; color: #fff; }
+.tr-method-theory { background: #2563eb; }
+.tr-method-hands-on { background: #16a34a; }
+.tr-method-case { background: #d97706; }
+.tr-course-obj, .tr-course-target { font-size: 12px; color: #475569; margin: 3px 0; }
+.tr-course-content { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: #475569; }
+.tr-course-content li { margin: 2px 0; }
+
+/* 表格 */
+.tr-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.tr-table th, .tr-table td { border: 1px solid #e2e8f0; padding: 7px 9px; text-align: left; }
+.tr-table th { background: var(--c-primary); color: #fff; font-weight: 500; }
+.tr-table tbody tr:nth-child(even) { background: #f8fafc; }
+.tr-status { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+.tr-status-planned { background: #fef3c7; color: #b45309; }
+.tr-status-ongoing { background: #dbeafe; color: #1d4ed8; }
+.tr-status-done { background: #dcfce7; color: #15803d; }
+
+/* 进度 */
+.tr-progress-row { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.tr-progress-meta { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.tr-progress-trainee { font-weight: 600; color: #1e293b; }
+.tr-progress-plan { color: #64748b; }
+.tr-progress-rate { font-weight: 700; color: var(--c-primary); }
+.tr-progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.tr-progress-fill { height: 100%; background: linear-gradient(to right, #16a34a, #4ade80); }
+.tr-progress-foot { font-size: 12px; color: #64748b; margin-top: 5px; }
+
+/* 表单 */
+.tr-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tr-form-grid label { display: flex; flex-direction: column; font-size: 12px; color: #475569; gap: 4px; }
+.tr-input { padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 100%; box-sizing: border-box; }
+.tr-input-inline { width: auto; }
+.tr-textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 100%; min-height: 90px; box-sizing: border-box; resize: vertical; }
+
+/* 考试 */
+.tr-exam-setup { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
+.tr-exam-setup label { font-size: 13px; color: #475569; display: flex; align-items: center; gap: 6px; }
+.tr-exam-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; }
+.tr-exam-head { font-size: 13px; color: var(--c-primary); font-weight: 600; margin-bottom: 8px; }
+.tr-exam-trainee { margin-bottom: 10px; }
+.tr-q { border-bottom: 1px dashed #e2e8f0; padding: 10px 0; }
+.tr-q-title { font-size: 13px; color: #1e293b; margin-bottom: 6px; }
+.tr-q-type { color: #d97706; font-size: 11px; }
+.tr-q-opts { display: flex; flex-direction: column; gap: 4px; }
+.tr-q-opt { font-size: 13px; color: #334155; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.tr-exam-result { text-align: center; padding: 20px; }
+.tr-exam-result h4 { color: var(--c-primary); }
+.tr-pass { color: #16a34a; font-weight: 700; }
+.tr-fail { color: #dc2626; font-weight: 700; }
+
+/* 统计 */
+.tr-stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+.tr-stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; }
+.tr-stat-val { font-size: 22px; font-weight: 700; color: var(--c-primary); }
+.tr-stat-label { font-size: 12px; color: #64748b; margin-top: 2px; }
+.tr-dist-row { display: flex; align-items: center; gap: 8px; margin: 5px 0; font-size: 12px; }
+.tr-dist-label { width: 52px; color: #475569; }
+.tr-dist-bar { flex: 1; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
+.tr-dist-fill { height: 100%; background: linear-gradient(to right, #2d5aa0, #4ade80); }
+.tr-dist-val { width: 80px; text-align: right; color: #64748b; }
+
+/* 反馈 */
+.tr-fb-form { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; max-width: 480px; }
+.tr-fb-form h4 { color: var(--c-primary); margin: 0 0 4px; }
+.tr-fb-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; background: #fff; }
+.tr-fb-head { display: flex; gap: 10px; font-size: 12px; color: #64748b; margin-bottom: 4px; }
+.tr-fb-from { font-weight: 600; color: #1e293b; }
+.tr-fb-type { background: #dbeafe; color: #1d4ed8; padding: 1px 6px; border-radius: 8px; }
+.tr-fb-content { font-size: 13px; color: #334155; white-space: pre-wrap; }
+
+/* 入口按钮高亮 */
+.training-entry-btn { background: var(--c-primary) !important; color: #fff !important; border-color: var(--c-primary) !important; }
+.training-entry-btn:hover { background: var(--c-primary-light) !important; }
+

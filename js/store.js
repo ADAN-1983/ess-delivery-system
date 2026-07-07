@@ -1324,6 +1324,184 @@ const Store = (function() {
     ]
   };
 
+  // ========== 培训管理系统 默认数据（内嵌兜底 + 外部 training.json 同步）==========
+  const EMBEDDED_TRAINING = {
+    outline: [
+      { id:'c1', name:'储能系统基础原理', category:'internal', method:'theory', durationH:4,
+        objective:'掌握储能系统构成、电化学原理与核心部件功能，建立系统性认知',
+        target:'交付/调试/售前工程师',
+        content:['储能系统基本构成：电池模组、PCS、BMS、EMS、消防与液冷','电化学储能工作原理：锂电充放电特性与能量转换','PCS功能：交直流变换、并网/离网、有功无功调节','BMS作用：电芯监控、均衡、保护、SOC/SOH估算','EMS调度：峰谷套利、需量管理、调度指令响应'],
+        questions:[
+          {id:'c1q1',type:'single',q:'储能系统核心构成不包括以下哪项？',options:['电池模组','PCS','BMS','汽轮机'],answer:3},
+          {id:'c1q2',type:'single',q:'BMS 的主要作用是？',options:['能量转换','电芯监控与保护','并网友好','制冷'],answer:1},
+          {id:'c1q3',type:'multi',q:'PCS 的功能包括？',options:['交直流变换','并网离网切换','有功无功调节','电池化成'],answer:[0,1,2]},
+          {id:'c1q4',type:'single',q:'EMS 调度可实现以下哪项？',options:['峰谷套利','机械加工','物流调度','财务审计'],answer:0},
+          {id:'c1q5',type:'single',q:'SOC 表示？',options:['健康度','荷电状态','温度','电压'],answer:1},
+          {id:'c1q6',type:'single',q:'锂电充放电属于哪类储能？',options:['电化学','机械','热','光'],answer:0}
+        ] },
+      { id:'c2', name:'系统集成与调试规范', category:'internal', method:'hands-on', durationH:8,
+        objective:'掌握现场安装、SAT系统调试标准化流程与关键质量控制点',
+        target:'现场调试/集成工程师',
+        content:['现场安装工艺流程与关键质量控制点','SAT系统调试标准化流程（10阶段）','绝缘检测与耐压试验方法','并网联动与充放电性能测试','调试文档与偏差整改闭环'],
+        questions:[
+          {id:'c2q1',type:'single',q:'SAT 系统调试共分为几个阶段？',options:['8','10','12','6'],answer:1},
+          {id:'c2q2',type:'single',q:'绝缘电阻检测属于哪类检查？',options:['外观检查','电气安全','软件配置','运输'],answer:1},
+          {id:'c2q3',type:'single',q:'高压操作前必须？',options:['验电+LOTO','直接操作','拍照','请示'],answer:0},
+          {id:'c2q4',type:'multi',q:'充放电测试的目的包括？',options:['验证容量','验证效率','验证绝缘','验证保护'],answer:[0,1,3]},
+          {id:'c2q5',type:'single',q:'调试发现的偏差应？',options:['闭环销项','忽略','记录不处理','外包'],answer:0},
+          {id:'c2q6',type:'single',q:'并网联动测试需要？',options:['电网许可','关闭系统','拆除电缆','无要求'],answer:0}
+        ] },
+      { id:'c3', name:'安全与应急处理', category:'internal', method:'case', durationH:4,
+        objective:'掌握 LOTO、触电急救、消防与热失控初期处置，提升现场安全能力',
+        target:'全体现场人员',
+        content:['LOTO上锁挂牌流程与授权','高压触电急救与心肺复苏','储能消防：气体灭火与联动逻辑','电解液泄漏与热失控初期处置','应急演练与事故上报'],
+        questions:[
+          {id:'c3q1',type:'single',q:'高压作业前必须执行？',options:['LOTO','开会','拍照','吃饭'],answer:0},
+          {id:'c3q2',type:'single',q:'触电急救首选措施？',options:['心肺复苏','泼水','移动','等待'],answer:0},
+          {id:'c3q3',type:'single',q:'储能消防常用灭火剂？',options:['水','气体灭火','沙土','泡沫'],answer:1},
+          {id:'c3q4',type:'multi',q:'热失控初期应？',options:['隔离','断电','报警','继续运行'],answer:[0,1,2]},
+          {id:'c3q5',type:'single',q:'事故上报应？',options:['及时逐级上报','隐瞒','不报','自行处理'],answer:0},
+          {id:'c3q6',type:'single',q:'LOTO 的含义是？',options:['上锁挂牌','照明','联络','记录'],answer:0}
+        ] },
+      { id:'c4', name:'质量管控与文档管理', category:'internal', method:'theory', durationH:3,
+        objective:'掌握交付验收标准、文控管理与偏差闭环，保障交付质量可追溯',
+        target:'质量/文控/项目经理',
+        content:['交付验收标准与里程碑节点','文控管理：版本/归档/移交清单','隐蔽工程与过程记录','偏差管理与 DCR 闭环'],
+        questions:[
+          {id:'c4q1',type:'single',q:'文控管理最关注的是？',options:['版本与归档','颜色','字体','重量'],answer:0},
+          {id:'c4q2',type:'single',q:'现场偏差应走？',options:['DCR闭环','忽略','口头','作废'],answer:0},
+          {id:'c4q3',type:'single',q:'隐蔽工程需要？',options:['过程记录验收','拍照即可','不需记录','事后补'],answer:0},
+          {id:'c4q4',type:'single',q:'验收里程碑由什么确定？',options:['合同节点','随机','个人','天气'],answer:0},
+          {id:'c4q5',type:'single',q:'文档移交需要？',options:['移交清单','口头','无','邮件'],answer:0},
+          {id:'c4q6',type:'single',q:'质量记录应？',options:['可追溯','可删','可改','无要求'],answer:0}
+        ] },
+      { id:'c5', name:'储能电站操作实务', category:'customer', method:'hands-on', durationH:6,
+        objective:'使客户掌握系统启停、模式切换与监控操作，保障日常安全运行',
+        target:'客户运维/操作人员',
+        content:['系统启停操作与模式切换','EMS本地/远程监控界面使用','峰谷/计划曲线/手动模式操作','日常运行参数读取与判读','操作权限与作业票管理'],
+        questions:[
+          {id:'c5q1',type:'single',q:'系统启动前需确认？',options:['绝缘','外观','环境','以上全部'],answer:3},
+          {id:'c5q2',type:'single',q:'EMS 监控界面可用于？',options:['读取运行参数','改硬件','拆机','焊接'],answer:0},
+          {id:'c5q3',type:'single',q:'运行模式切换应？',options:['按规程执行','随意','断电','远程强制'],answer:0},
+          {id:'c5q4',type:'single',q:'现场操作需要？',options:['作业票与权限','任意','口头','无'],answer:0},
+          {id:'c5q5',type:'single',q:'设置峰谷模式的主要目的是？',options:['经济套利','娱乐','测试','无'],answer:0},
+          {id:'c5q6',type:'single',q:'发现参数异常应？',options:['核实并上报','忽略','自行拆机','关机离开'],answer:0}
+        ] },
+      { id:'c6', name:'运维巡检与故障处理', category:'customer', method:'hands-on', durationH:8,
+        objective:'使客户掌握巡检标准、告警处置与常见故障处理，降低停机风险',
+        target:'客户运维团队',
+        content:['日常/定期巡检项目与标准','告警等级与处置流程','常见故障：通信中断/温控异常/绝缘告警','备品备件更换与台账','故障上报与协同'],
+        questions:[
+          {id:'c6q1',type:'single',q:'设备巡检应？',options:['按标准项目','随意','不巡','仅拍照'],answer:0},
+          {id:'c6q2',type:'single',q:'出现严重告警应？',options:['立即处置并上报','忽略','关机走人','拍照'],answer:0},
+          {id:'c6q3',type:'multi',q:'通信中断可能的原因？',options:['网线松动','交换机故障','配置错误','天气晴朗'],answer:[0,1,2]},
+          {id:'c6q4',type:'single',q:'温控异常首先应？',options:['检查液冷与风扇','拆电池','泼水','断电'],answer:0},
+          {id:'c6q5',type:'single',q:'备件更换需要？',options:['台账登记','不记','随意','弃旧'],answer:0},
+          {id:'c6q6',type:'single',q:'故障处置的原则是？',options:['安全优先闭环','掩盖','拖延','外包不管'],answer:0}
+        ] },
+      { id:'c7', name:'电池安全管理与消防', category:'customer', method:'case', durationH:4,
+        objective:'使客户掌握电池安全预警、消防联动与应急处置，防范安全事故',
+        target:'客户安全/运维负责人',
+        content:['电池热失控机理与预警征兆','温度/电压/SOC异常判读','消防系统联动与逃生路线','应急处置与上报'],
+        questions:[
+          {id:'c7q1',type:'single',q:'热失控前兆可能包括？',options:['温升','电压异常','两者皆可能','无征兆'],answer:2},
+          {id:'c7q2',type:'single',q:'消防联动应？',options:['自动启动气体灭火','人工泼水','忽略','关闭系统'],answer:0},
+          {id:'c7q3',type:'single',q:'应急逃生应？',options:['按路线撤离','乘电梯','返回取物','围观'],answer:0},
+          {id:'c7q4',type:'single',q:'发现电压异常应？',options:['核实并上报','忽略','拆电池','短接'],answer:0},
+          {id:'c7q5',type:'single',q:'电池安全的核心是？',options:['监测与预警','外观','重量','颜色'],answer:0},
+          {id:'c7q6',type:'single',q:'应急情况上报应？',options:['及时上报','隐瞒','不报','延时'],answer:0}
+        ] },
+      { id:'c8', name:'能效优化与经济运行', category:'customer', method:'theory', durationH:3,
+        objective:'使客户掌握峰谷套利、需量管理与需求响应，提升电站经济收益',
+        target:'客户运营/管理人员',
+        content:['峰谷电价与套利策略','需量管理与削峰','需求响应与电网调度','EMS策略配置与收益评估'],
+        questions:[
+          {id:'c8q1',type:'single',q:'峰谷套利利用的是？',options:['价差','汇率','税','运费'],answer:0},
+          {id:'c8q2',type:'single',q:'需量管理的目的是？',options:['降低最大需量费','增电','改表','无'],answer:0},
+          {id:'c8q3',type:'single',q:'需求响应是指？',options:['按电网指令调节负荷','看电视','关灯','无'],answer:0},
+          {id:'c8q4',type:'single',q:'EMS 策略可以？',options:['配置优化','拆机','焊接','改线'],answer:0},
+          {id:'c8q5',type:'single',q:'收益评估需要？',options:['数据建模','猜测','忽略','无'],answer:0},
+          {id:'c8q6',type:'single',q:'经济运行的目标是？',options:['降本增效','增耗','无','随机'],answer:0}
+        ] }
+    ],
+    plans: [
+      { id:'p1', title:'印度新德里ReNew项目-客户运维培训', date:'2026-08-15', location:'项目现场', trainer:'郑丹', audience:'业主运维团队', courseIds:['c5','c6','c7'], status:'planned' },
+      { id:'p2', title:'内部交付工程师上岗培训', date:'2026-07-20', location:'公司培训中心', trainer:'技术部', audience:'交付/调试工程师', courseIds:['c1','c2','c3','c4'], status:'ongoing' }
+    ],
+    progress: [
+      { planId:'p2', trainee:'张工', completedCourses:['c1','c3'], rate:50, status:'ongoing', date:'2026-07-10' },
+      { planId:'p2', trainee:'李工', completedCourses:['c1'], rate:25, status:'ongoing', date:'2026-07-10' },
+      { planId:'p1', trainee:'业主A', completedCourses:[], rate:0, status:'planned', date:'2026-08-15' }
+    ],
+    materials: [
+      { id:'m1', title:'储能系统基础原理培训PPT', type:'ppt', courseId:'c1', fileName:'储能基础原理.pptx', sizeKB:2048, updatedAt:'2026-07-05', note:'内部培训用' },
+      { id:'m2', title:'客户运维操作手册V1.0', type:'doc', courseId:'c5', fileName:'运维操作手册.docx', sizeKB:512, updatedAt:'2026-07-06', note:'交付客户' }
+    ],
+    exams: [],
+    submissions: [],
+    feedback: []
+  };
+
+  // ========== 培训教材 IndexedDB 封装（文件实体存储，与 localStorage 元数据分离）==========
+  const TrainingDB = (function() {
+    const DB_NAME = 'ess_training_materials';
+    const STORE = 'files';
+    const VERSION = 1;
+    function open() {
+      return new Promise(function(resolve, reject) {
+        if (!('indexedDB' in window)) { reject(new Error('当前环境不支持 IndexedDB')); return; }
+        const req = indexedDB.open(DB_NAME, VERSION);
+        req.onupgradeneeded = function(e) {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+        };
+        req.onsuccess = function(e) { resolve(e.target.result); };
+        req.onerror = function(e) { reject(e.target.error); };
+      });
+    }
+    function putFile(id, blob) {
+      return open().then(function(db) {
+        return new Promise(function(res, rej) {
+          const tx = db.transaction(STORE, 'readwrite');
+          tx.objectStore(STORE).put(blob, id);
+          tx.oncomplete = function() { res(true); };
+          tx.onerror = function() { rej(tx.error); };
+        });
+      });
+    }
+    function getFile(id) {
+      return open().then(function(db) {
+        return new Promise(function(res, rej) {
+          const tx = db.transaction(STORE, 'readonly');
+          const r = tx.objectStore(STORE).get(id);
+          r.onsuccess = function() { res(r.result || null); };
+          r.onerror = function() { rej(r.error); };
+        });
+      });
+    }
+    function deleteFile(id) {
+      return open().then(function(db) {
+        return new Promise(function(res, rej) {
+          const tx = db.transaction(STORE, 'readwrite');
+          tx.objectStore(STORE).delete(id);
+          tx.oncomplete = function() { res(true); };
+          tx.onerror = function() { rej(tx.error); };
+        });
+      });
+    }
+    function listFiles() {
+      return open().then(function(db) {
+        return new Promise(function(res, rej) {
+          const tx = db.transaction(STORE, 'readonly');
+          const r = tx.objectStore(STORE).getAllKeys();
+          r.onsuccess = function() { res(r.result || []); };
+          r.onerror = function() { rej(r.error); };
+        });
+      });
+    }
+    return { open: open, putFile: putFile, getFile: getFile, deleteFile: deleteFile, listFiles: listFiles };
+  })();
+
   // ========== 初始化（同步优先，异步增强）==========
 
   async function init() {
@@ -1387,6 +1565,12 @@ const Store = (function() {
               }
             });
           }
+          // ★ training 迁移：缺失时用内联补全；outline 以內嵌为准（保证题库最新），其余子域保留用户数据
+          if (!parsed.training || typeof parsed.training !== 'object') parsed.training = JSON.parse(JSON.stringify(EMBEDDED_TRAINING));
+          parsed.training.outline = JSON.parse(JSON.stringify(EMBEDDED_TRAINING.outline));
+          ['plans','progress','materials','exams','submissions','feedback'].forEach(function(k){
+            if (!Array.isArray(parsed.training[k])) parsed.training[k] = JSON.parse(JSON.stringify(EMBEDDED_TRAINING[k] || []));
+          });
           return parsed;
         }
         console.log('Store: LocalStorage版本不匹配或数据无效, 使用内联数据 (v' + STORAGE_VERSION + ')');
@@ -1404,7 +1588,8 @@ const Store = (function() {
       installSOP: EMBEDDED_INSTALL_SOP,
       satSOP: EMBEDDED_SAT_SOP,
       fatSOP: EMBEDDED_FAT_SOP,
-      rdSOP: EMBEDDED_RD_SOP
+      rdSOP: EMBEDDED_RD_SOP,
+      training: JSON.parse(JSON.stringify(EMBEDDED_TRAINING))
     };
     return fresh;
   }
@@ -1412,11 +1597,12 @@ const Store = (function() {
   async function enrichIfPossible() {
     // 尝试从远程加载更新的数据（仅当网络可用时）
     try {
-      const [prjResp, insResp, satResp, fatResp] = await Promise.allSettled([
+      const [prjResp, insResp, satResp, fatResp, trainResp] = await Promise.allSettled([
         fetchWithTimeout('data/projects.json', 3000),
         fetchWithTimeout('data/install-sop.json', 3000),
         fetchWithTimeout('data/sat-sop.json', 3000),
-        fetchWithTimeout('data/fat-sop.json', 3000)
+        fetchWithTimeout('data/fat-sop.json', 3000),
+        fetchWithTimeout('data/training.json', 3000)
       ]);
 
       // 项目数据
@@ -1443,6 +1629,10 @@ const Store = (function() {
       }
       if (fatResp.status === 'fulfilled' && fatResp.value && fatResp.value.phases && fatResp.value.phases.length) {
         _state.fatSOP = fatResp.value;
+      }
+      // 培训：仅用远程 outline 刷新题库/课程目录，保留用户计划/进度/成绩等数据
+      if (trainResp.status === 'fulfilled' && trainResp.value && trainResp.value.outline) {
+        _state.training.outline = trainResp.value.outline;
       }
     } catch (e) {
       // 静默失败，已使用嵌入式数据
@@ -1543,6 +1733,22 @@ const Store = (function() {
   function getSatSOP() { return (_state && _state.satSOP) || EMBEDDED_SAT_SOP; }
   function getFatSOP() { return (_state && _state.fatSOP) || EMBEDDED_FAT_SOP; }
   function getRdSOP() { return (_state && _state.rdSOP) || EMBEDDED_RD_SOP; }
+
+  // ========== 培训管理系统 数据接口 ==========
+  function getTraining() { return (_state && _state.training) || JSON.parse(JSON.stringify(EMBEDDED_TRAINING)); }
+  function saveTraining(data) {
+    if (!_state) return;
+    _state.training = data;
+    persist();
+    notify('trainingChanged', {});
+  }
+  function updateTraining(domain, items) {
+    if (!_state) return;
+    if (!_state.training) _state.training = JSON.parse(JSON.stringify(EMBEDDED_TRAINING));
+    _state.training[domain] = items;
+    persist();
+    notify('trainingChanged', {});
+  }
 
   function getSOPCheckState(projectId, sopType, checkId) {
     if (!_state) return null;
@@ -1660,6 +1866,10 @@ const Store = (function() {
     getSatSOP: getSatSOP,
     getFatSOP: getFatSOP,
     getRdSOP: getRdSOP,
+    getTraining: getTraining,
+    saveTraining: saveTraining,
+    updateTraining: updateTraining,
+    TrainingDB: TrainingDB,
     getSOPCheckState: getSOPCheckState,
     setSOPCheckState: setSOPCheckState,
     exportFullJSON: exportFullJSON,

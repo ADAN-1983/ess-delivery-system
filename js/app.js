@@ -1304,7 +1304,7 @@ const App = (function() {
   function renderHandoverTab() {
     const subTabs = [
       {id:'ho-pre',name:'预验收PAC'},{id:'ho-formal',name:'正式验收FAC'},
-      {id:'ho-docs',name:'文件移交'},{id:'ho-spare',name:'备品备件'},{id:'ho-training',name:'客户培训'},{id:'ho-trial',name:'试运行'}
+      {id:'ho-docs',name:'文件移交'},{id:'ho-spare',name:'备品备件'},{id:'ho-training',name:'客户培训'},{id:'ho-trial',name:'试运行'},{id:'ho-trainingsys',name:'培训管理系统'}
     ];
     return `
       <div class="tab-toolbar-row">
@@ -1312,6 +1312,7 @@ const App = (function() {
           ${subTabs.map(st => `<button class="sub-tab-btn${st.id==='ho-pre'?' active':''}" data-tab-group="ho" data-subtab="${st.id}">${st.name}</button>`).join('')}
         </div>
         <div class="tab-toolbar-links">
+          <a href="javascript:void(0)" class="btn btn-sm btn-outline training-entry-btn" onclick="App.openTrainingSystem()" title="培训大纲/计划/进度/教材/考试/成绩/建议">🎓 培训管理系统</a>
           <a href="javascript:void(0)" class="btn btn-sm btn-outline" onclick="toast('文件管理系统子系统后续开发','info')" title="与文控管理子系统对接">📁 文件管理系统</a>
         </div>
       </div>
@@ -1322,6 +1323,7 @@ const App = (function() {
         <div class="sub-tab-panel" data-panel="ho-spare">${renderHoSpareContent()}</div>
         <div class="sub-tab-panel" data-panel="ho-training">${renderHoTrainingContent()}</div>
         <div class="sub-tab-panel" data-panel="ho-trial">${renderHoTrialContent()}</div>
+        <div class="sub-tab-panel" data-panel="ho-trainingsys">${renderTrainingSystem()}</div>
       </div>
     `;
   }
@@ -2026,6 +2028,346 @@ const App = (function() {
         {item:'商运启动确认',owner:'项目经理',deadline:'7天试运行通过',status:'pending'}]),
       buildRiskCard('7_ho_trial',[{level:'high',text:'试运行中断→立即停机+分析+通知'}])
     );
+  }
+
+  // ========== 培训管理系统专栏 ==========
+  var _trExamCache = null;
+  function trEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]; }); }
+  function methodLabel(m){ return m==='theory'?'理论':(m==='hands-on'?'实操':'案例'); }
+  function statusLabel(s){ return s==='done'?'已完成':(s==='ongoing'?'实施中':'待实施'); }
+  function typeLabel(t){ return t==='ppt'?'PPT':(t==='xls'?'EXCEL':'WORD'); }
+  function fbTypeLabel(t){ return t==='content'?'培训内容':(t==='form'?'培训形式':(t==='trainer'?'讲师':'其他')); }
+  function diffLabel(d){ return d==='easy'?'容易':(d==='medium'?'中等':'困难'); }
+  function courseNameOf(cid){ var o=Store.getTraining().outline.find(function(c){return c.id===cid;}); return o?o.name:cid; }
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  function nowTime(){ var d=new Date(); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
+  function statCard(label,val){ return '<div class="tr-stat-card"><div class="tr-stat-val">'+val+'</div><div class="tr-stat-label">'+label+'</div></div>'; }
+
+  function openTrainingSystem() {
+    var btn = document.querySelector('.sub-tab-btn[data-subtab="ho-trainingsys"]');
+    if (btn) btn.click();
+  }
+  function renderTrainingSystem() {
+    return '<div class="training-system">'
+      + '<div class="training-nav">'
+      +   '<button class="tr-nav-btn active" data-tr-mod="outline" onclick="App.showTrainingModule(\'outline\')">培训大纲</button>'
+      +   '<button class="tr-nav-btn" data-tr-mod="plan" onclick="App.showTrainingModule(\'plan\')">培训计划</button>'
+      +   '<button class="tr-nav-btn" data-tr-mod="progress" onclick="App.showTrainingModule(\'progress\')">培训进度</button>'
+      +   '<button class="tr-nav-btn" data-tr-mod="materials" onclick="App.showTrainingModule(\'materials\')">培训教材</button>'
+      +   '<button class="tr-nav-btn" data-tr-mod="exam" onclick="App.showTrainingModule(\'exam\')">培训考试</button>'
+      +   '<button class="tr-nav-btn" data-tr-mod="scoreStat" onclick="App.showTrainingModule(\'scoreStat\')">成绩统计</button>'
+      +   '<button class="tr-nav-btn" data-tr-mod="scoreQuery" onclick="App.showTrainingModule(\'scoreQuery\')">成绩查询</button>'
+      +   '<button class="tr-nav-btn" data-tr-mod="feedback" onclick="App.showTrainingModule(\'feedback\')">培训建议</button>'
+      + '</div>'
+      + '<div class="training-module-area" id="trainingModuleArea">' + renderTrainingModule('outline') + '</div>'
+      + '</div>';
+  }
+  function showTrainingModule(mod) {
+    document.querySelectorAll('.tr-nav-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.trMod === mod); });
+    var area = document.getElementById('trainingModuleArea');
+    if (area) area.innerHTML = renderTrainingModule(mod);
+  }
+  function renderTrainingModule(mod) {
+    if (mod==='plan') return renderTrainingPlan();
+    if (mod==='progress') return renderTrainingProgress();
+    if (mod==='materials') return renderTrainingMaterials();
+    if (mod==='exam') return renderTrainingExam();
+    if (mod==='scoreStat') return renderTrainingScoreStat();
+    if (mod==='scoreQuery') return renderTrainingScoreQuery();
+    if (mod==='feedback') return renderTrainingFeedback();
+    return renderTrainingOutline();
+  }
+  function renderTrainingOutline() {
+    var t = Store.getTraining();
+    var internal = t.outline.filter(function(c){return c.category==='internal';});
+    var customer = t.outline.filter(function(c){return c.category==='customer';});
+    function card(c){
+      return '<div class="tr-course-card">'
+        + '<div class="tr-course-head"><span class="tr-course-name">'+trEsc(c.name)+'</span>'
+        + '<span class="tr-badge tr-method-'+c.method+'">'+methodLabel(c.method)+'</span>'
+        + '<span class="tr-course-dur">'+c.durationH+'h</span></div>'
+        + '<div class="tr-course-obj">目标：'+trEsc(c.objective)+'</div>'
+        + '<div class="tr-course-target">对象：'+trEsc(c.target)+'</div>'
+        + '<ul class="tr-course-content">'+c.content.map(function(x){return '<li>'+trEsc(x)+'</li>';}).join('')+'</ul>'
+        + '</div>';
+    }
+    return '<div class="tr-section">'
+      + '<h4 class="tr-section-title">对内培训（基础知识 / 技能培训）</h4><div class="tr-course-grid">'+internal.map(card).join('')+'</div>'
+      + '<h4 class="tr-section-title">对客户培训（操作 / 运维技能培训）</h4><div class="tr-course-grid">'+customer.map(card).join('')+'</div>'
+      + '</div>';
+  }
+  function renderTrainingPlan() {
+    var t = Store.getTraining();
+    var courses = {}; t.outline.forEach(function(c){courses[c.id]=c.name;});
+    var rows = t.plans.map(function(p){
+      var cn = p.courseIds.map(function(id){return courses[id]||id;}).join('、');
+      return '<tr><td>'+trEsc(p.title)+'</td><td>'+trEsc(p.date)+'</td><td>'+trEsc(p.location)+'</td>'
+        + '<td>'+trEsc(p.trainer)+'</td><td>'+trEsc(p.audience)+'</td><td>'+trEsc(cn)+'</td>'
+        + '<td><span class="tr-status tr-status-'+p.status+'">'+statusLabel(p.status)+'</span></td>'
+        + '<td><button class="btn btn-xs btn-danger" onclick="App.delTrainingPlan(\''+p.id+'\')">删除</button></td></tr>';
+    }).join('');
+    return '<div class="tr-section"><div class="tr-toolbar"><button class="btn btn-sm btn-primary" onclick="App.addTrainingPlan()">+ 新增培训计划</button></div>'
+      + '<table class="tr-table"><thead><tr><th>计划名称</th><th>日期</th><th>地点</th><th>讲师</th><th>受众</th><th>课程</th><th>状态</th><th>操作</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+  function addTrainingPlan() {
+    var t = Store.getTraining();
+    var courseOpts = t.outline.map(function(c){return '<option value="'+c.id+'">'+trEsc(c.name)+'</option>';}).join('');
+    var body = '<div class="tr-form-grid">'
+      + '<label>计划名称<input id="plTitle" class="tr-input" placeholder="如：XX项目客户运维培训"></label>'
+      + '<label>日期<input id="plDate" class="tr-input" type="date"></label>'
+      + '<label>地点<input id="plLoc" class="tr-input" placeholder="项目现场/培训中心"></label>'
+      + '<label>讲师<input id="plTrainer" class="tr-input" placeholder="讲师姓名"></label>'
+      + '<label>受众<input id="plAud" class="tr-input" placeholder="参训人员"></label>'
+      + '<label>状态<select id="plStatus" class="tr-input"><option value="planned">待实施</option><option value="ongoing">实施中</option><option value="done">已完成</option></select></label>'
+      + '<label>关联课程(可多选)<select id="plCourses" class="tr-input" multiple>'+courseOpts+'</select></label>'
+      + '</div>';
+    showModal('新增培训计划', body, [
+      {text:'取消', cls:'btn-outline', action:function(){App.closeModal();}},
+      {text:'保存', cls:'btn-primary', action:function(){
+        var title=document.getElementById('plTitle').value.trim();
+        if(!title){toast('请填写计划名称','warn');return;}
+        var t2=Store.getTraining();
+        var courses=Array.from(document.getElementById('plCourses').selectedOptions).map(function(o){return o.value;});
+        var plans=t2.plans.slice();
+        plans.push({id:'pl_'+Date.now(), title:title, date:document.getElementById('plDate').value||'-', location:document.getElementById('plLoc').value||'-', trainer:document.getElementById('plTrainer').value||'-', audience:document.getElementById('plAud').value||'-', courseIds:courses, status:document.getElementById('plStatus').value});
+        Store.updateTraining('plans', plans);
+        App.closeModal(); App.showTrainingModule('plan'); toast('培训计划已保存','success');
+      }}
+    ]);
+  }
+  function delTrainingPlan(id) {
+    var t=Store.getTraining();
+    Store.updateTraining('plans', t.plans.filter(function(p){return p.id!==id;}));
+    App.showTrainingModule('plan'); toast('计划已删除','info');
+  }
+  function renderTrainingProgress() {
+    var t = Store.getTraining();
+    var plans={}; t.plans.forEach(function(p){plans[p.id]=p;});
+    if(!t.progress.length) return '<div class="tr-section"><h4 class="tr-section-title">培训进度 / 完成情况</h4><p class="tr-empty">暂无进度记录</p></div>';
+    var rows = t.progress.map(function(pr){
+      var pname = plans[pr.planId]?plans[pr.planId].title:pr.planId;
+      var pct = pr.rate||0;
+      return '<div class="tr-progress-row">'
+        + '<div class="tr-progress-meta"><span class="tr-progress-trainee">'+trEsc(pr.trainee)+'</span><span class="tr-progress-plan">'+trEsc(pname)+'</span><span class="tr-progress-rate">'+pct+'%</span></div>'
+        + '<div class="tr-progress-bar"><div class="tr-progress-fill" style="width:'+pct+'%"></div></div>'
+        + '<div class="tr-progress-foot"><span class="tr-status tr-status-'+pr.status+'">'+statusLabel(pr.status)+'</span> 已完成课程：'+((pr.completedCourses||[]).length)+' 门</div>'
+        + '</div>';
+    }).join('');
+    return '<div class="tr-section"><h4 class="tr-section-title">培训进度 / 完成情况</h4>'+rows+'</div>';
+  }
+  function renderTrainingMaterials() {
+    var t = Store.getTraining();
+    var courseOpts = t.outline.map(function(c){return '<option value="'+c.id+'">'+trEsc(c.name)+'</option>';}).join('');
+    var rows = t.materials.map(function(m){
+      var cn = courseNameOf(m.courseId);
+      return '<tr><td>'+trEsc(m.title)+'</td><td>'+typeLabel(m.type)+'</td><td>'+trEsc(cn)+'</td>'
+        + '<td>'+trEsc(m.fileName)+'</td><td>'+(m.sizeKB?Math.round(m.sizeKB/1024*10)/10+' MB':'-')+'</td>'
+        + '<td>'+trEsc(m.updatedAt||'')+'</td>'
+        + '<td><button class="btn btn-xs" onclick="App.downloadMaterial(\''+m.id+'\')">下载</button> '
+        + '<button class="btn btn-xs btn-danger" onclick="App.delMaterial(\''+m.id+'\')">删减</button></td></tr>';
+    }).join('');
+    return '<div class="tr-section"><div class="tr-toolbar">'
+      + '<label class="btn btn-sm btn-primary">+ 上传教材<input type="file" id="materialFile" style="display:none" onchange="App.uploadMaterial(this)"></label>'
+      + '<label>关联课程：<select id="materialCourse" class="tr-input tr-input-inline">'+courseOpts+'</select></label>'
+      + '<button class="btn btn-sm btn-outline" onclick="App.addMaterialMeta()">+ 新增(仅元数据)</button></div>'
+      + '<table class="tr-table"><thead><tr><th>教材名称</th><th>类型</th><th>关联课程</th><th>文件名</th><th>大小</th><th>更新日期</th><th>操作</th></tr></thead><tbody>'+rows+'</tbody></table>'
+      + '<p class="tr-hint">支持 PPT / WORD / EXCEL 等教材上传，文件存于本机浏览器(IndexedDB)，刷新不丢失；可删减 / 更新。</p></div>';
+  }
+  function uploadMaterial(input){
+    var f=input.files&&input.files[0]; if(!f) return;
+    var courseSel=document.getElementById('materialCourse');
+    var courseId=courseSel?courseSel.value:'';
+    var ext=(f.name.split('.').pop()||'').toLowerCase();
+    var typeMap={ppt:'ppt',pptx:'ppt',doc:'doc',docx:'doc',xls:'xls',xlsx:'xls'};
+    var type=typeMap[ext]||'doc';
+    var id='file_'+Date.now();
+    Store.TrainingDB.putFile(id, f).then(function(){
+      var t=Store.getTraining();
+      var mats=t.materials.slice();
+      mats.push({id:id, title:f.name.replace(/\.[^.]+$/,'')||f.name, type:type, courseId:courseId, fileName:f.name, sizeKB:Math.round(f.size/1024), updatedAt:todayStr(), note:''});
+      Store.updateTraining('materials', mats);
+      App.showTrainingModule('materials'); toast('教材已上传：'+f.name,'success');
+    }).catch(function(e){ toast('上传失败：'+e.message,'error'); });
+  }
+  function addMaterialMeta(){
+    var t=Store.getTraining();
+    var courseOpts=t.outline.map(function(c){return '<option value="'+c.id+'">'+trEsc(c.name)+'</option>';}).join('');
+    var body='<div class="tr-form-grid">'
+      +'<label>教材名称<input id="mmTitle" class="tr-input" placeholder="教材名称"></label>'
+      +'<label>类型<select id="mmType" class="tr-input"><option value="ppt">PPT</option><option value="doc">WORD</option><option value="xls">EXCEL</option></select></label>'
+      +'<label>关联课程<select id="mmCourse" class="tr-input">'+courseOpts+'</select></label>'
+      +'<label>文件名<input id="mmFile" class="tr-input" placeholder="如：课件.pptx"></label>'
+      +'<label>备注<input id="mmNote" class="tr-input" placeholder="说明(可选)"></label></div>';
+    showModal('新增教材(仅元数据)', body, [
+      {text:'取消', cls:'btn-outline', action:function(){App.closeModal();}},
+      {text:'保存', cls:'btn-primary', action:function(){
+        var title=document.getElementById('mmTitle').value.trim(); if(!title){toast('请填写教材名称','warn');return;}
+        var t2=Store.getTraining();
+        var mats=t2.materials.slice();
+        mats.push({id:'meta_'+Date.now(), title:title, type:document.getElementById('mmType').value, courseId:document.getElementById('mmCourse').value, fileName:document.getElementById('mmFile').value||title, sizeKB:0, updatedAt:todayStr(), note:document.getElementById('mmNote').value});
+        Store.updateTraining('materials', mats);
+        App.closeModal(); App.showTrainingModule('materials'); toast('教材已新增','success');
+      }}
+    ]);
+  }
+  function downloadMaterial(id){
+    Store.TrainingDB.getFile(id).then(function(blob){
+      if(!blob){toast('文件不存在(该条仅元数据)','warn');return;}
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=url; a.download=(Store.getTraining().materials.find(function(m){return m.id===id;})||{}).fileName||'download'; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(url);a.remove();},1000);
+    }).catch(function(e){ toast('下载失败','error'); });
+  }
+  function delMaterial(id){
+    Store.TrainingDB.deleteFile(id).catch(function(){});
+    var t=Store.getTraining();
+    Store.updateTraining('materials', t.materials.filter(function(m){return m.id!==id;}));
+    App.showTrainingModule('materials'); toast('教材已删减','info');
+  }
+  function renderTrainingExam() {
+    var t = Store.getTraining();
+    var opts = t.outline.map(function(c){return '<option value="'+c.id+'">'+trEsc(c.name)+'</option>';}).join('');
+    return '<div class="tr-section"><div class="tr-exam-setup">'
+      + '<label>选择课程：<select id="examCourse" class="tr-input tr-input-inline">'+opts+'</select></label>'
+      + '<label>难度：<select id="examDiff" class="tr-input tr-input-inline"><option value="easy">容易</option><option value="medium">中等</option><option value="hard">困难</option></select></label>'
+      + '<button class="btn btn-sm btn-primary" onclick="App.startExam()">生成试卷并答题</button>'
+      + '</div><div id="examArea"></div>'
+      + '<p class="tr-hint">系统依据所选课程的题库，自动生成「容易/中等/困难」三档在线试卷；受训者在线作答并提交后自动阅卷、出分。</p></div>';
+  }
+  function generateExam(courseId, diff){
+    var course = Store.getTraining().outline.find(function(c){return c.id===courseId;});
+    if(!course) return null;
+    var pool=(course.questions||[]).slice();
+    var n = diff==='easy'?3 : (diff==='medium'?5:6);
+    for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;}
+    var q = pool.slice(0, Math.min(n, pool.length)).map(function(qq){return JSON.parse(JSON.stringify(qq));});
+    return {id:'ex_'+Date.now(), courseId:courseId, difficulty:diff, questions:q, createdAt:todayStr()};
+  }
+  function startExam(){
+    var courseId=document.getElementById('examCourse').value;
+    var diff=document.getElementById('examDiff').value;
+    var exam=generateExam(courseId, diff);
+    if(!exam){toast('该课程暂无题库','error');return;}
+    _trExamCache=exam;
+    var t=Store.getTraining(); var exams=(t.exams||[]).slice(); exams.push(exam); Store.updateTraining('exams', exams);
+    var qHtml=exam.questions.map(function(q,idx){
+      var inputs = q.options.map(function(op,oi){
+        var tag = q.type==='multi'?'checkbox':'radio';
+        var name = 'eq_'+exam.id+'_'+idx;
+        return '<label class="tr-q-opt"><input type="'+tag+'" name="'+name+'" value="'+oi+'"> '+trEsc(op)+'</label>';
+      }).join('');
+      return '<div class="tr-q"><div class="tr-q-title">'+(idx+1)+'. '+trEsc(q.q)+' <span class="tr-q-type">['+(q.type==='multi'?'多选':'单选')+']</span></div><div class="tr-q-opts">'+inputs+'</div></div>';
+    }).join('');
+    var html='<div class="tr-exam-box">'
+      + '<div class="tr-exam-head">课程：'+trEsc(courseNameOf(courseId))+' ｜ 难度：'+diffLabel(diff)+' ｜ 共 '+exam.questions.length+' 题（每题 1 分）</div>'
+      + '<div class="tr-exam-trainee"><label>受训者姓名：<input id="examTrainee" class="tr-input tr-input-inline" placeholder="请输入姓名"></label></div>'
+      + qHtml
+      + '<button class="btn btn-sm btn-primary" onclick="App.submitExam(\''+exam.id+'\')">提交试卷</button>'
+      + '</div>';
+    var area=document.getElementById('examArea'); if(area) area.innerHTML=html;
+  }
+  function submitExam(examId){
+    var exam=_trExamCache;
+    if(!exam || exam.id!==examId){ var t0=Store.getTraining(); exam=(t0.exams||[]).find(function(e){return e.id===examId;}); }
+    if(!exam){toast('试卷数据丢失，请重新生成','error');return;}
+    var trainee=document.getElementById('examTrainee')?document.getElementById('examTrainee').value.trim():'匿名';
+    if(!trainee){toast('请填写受训者姓名','warn');return;}
+    var total=exam.questions.length; var correct=0;
+    exam.questions.forEach(function(q,idx){
+      var name='eq_'+exam.id+'_'+idx;
+      var sel=Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(function(el){return parseInt(el.value);}).sort();
+      var ans=Array.isArray(q.answer)?q.answer.slice().sort():[q.answer];
+      if(JSON.stringify(sel)===JSON.stringify(ans)) correct++;
+    });
+    var pct = total>0?Math.round(correct/total*100):0;
+    var passed = pct>=60;
+    var sub={id:'sub_'+Date.now(), examId:examId, trainee:trainee, score:correct, total:total, passed:passed, submittedAt:todayStr()+' '+nowTime()};
+    var t=Store.getTraining(); var subs=(t.submissions||[]).slice(); subs.push(sub); Store.updateTraining('submissions', subs);
+    var area=document.getElementById('examArea');
+    if(area) area.innerHTML='<div class="tr-exam-result"><h4>答题完成</h4>'
+      + '<p>得分：<b>'+correct+' / '+total+'</b>（'+pct+' 分）</p>'
+      + '<p>结果：'+(passed?'<span class="tr-pass">合格</span>':'<span class="tr-fail">不合格</span>')+'</p>'
+      + '<p class="tr-hint">成绩已自动阅卷并计入「成绩统计 / 成绩查询」。</p>'
+      + '<button class="btn btn-sm btn-outline" onclick="App.showTrainingModule(\'exam\')">返回</button></div>';
+    toast(passed?'考试合格':'考试不合格','info');
+  }
+  function renderTrainingScoreStat() {
+    var t = Store.getTraining();
+    var subs = t.submissions||[];
+    if(!subs.length) return '<div class="tr-section"><p class="tr-empty">暂无考试成绩，请先在「培训考试」中作答并提交。</p></div>';
+    var total = subs.length, passed = subs.filter(function(s){return s.passed;}).length;
+    var avg = Math.round(subs.reduce(function(a,s){return a+s.score;},0)/total);
+    var maxScore = subs.reduce(function(a,s){return Math.max(a,s.total);},0);
+    var buckets=[0,0,0,0,0];
+    subs.forEach(function(s){var r=s.score; if(r<60)buckets[0]++; else if(r<70)buckets[1]++; else if(r<80)buckets[2]++; else if(r<90)buckets[3]++; else buckets[4]++;});
+    var labels=['<60','60-69','70-79','80-89','90-100'];
+    var distBars = buckets.map(function(b,i){var pct= total? Math.round(b/total*100):0; return '<div class="tr-dist-row"><span class="tr-dist-label">'+labels[i]+'</span><div class="tr-dist-bar"><div class="tr-dist-fill" style="width:'+pct+'%"></div></div><span class="tr-dist-val">'+b+' ('+pct+'%)</span></div>';}).join('');
+    var rows = subs.map(function(s){
+      var exam=(t.exams||[]).find(function(e){return e.id===s.examId;});
+      var cn=exam?courseNameOf(exam.courseId):'-';
+      return '<tr><td>'+trEsc(s.trainee||'匿名')+'</td><td>'+trEsc(cn)+'</td><td>'+s.score+'/'+s.total+'</td><td>'+(s.passed?'<span class="tr-pass">合格</span>':'<span class="tr-fail">不合格</span>')+'</td><td>'+trEsc(s.submittedAt||'')+'</td></tr>';
+    }).join('');
+    return '<div class="tr-section"><div class="tr-stat-cards">'
+      + statCard('参考人数', total) + statCard('合格率', Math.round(passed/total*100)+'%') + statCard('平均分', avg) + statCard('满分', maxScore)
+      + '</div>'
+      + '<h4 class="tr-section-title">分数分布</h4>'+distBars
+      + '<h4 class="tr-section-title">成绩明细</h4><table class="tr-table"><thead><tr><th>受训者</th><th>课程</th><th>得分</th><th>结果</th><th>提交时间</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+  function renderTrainingScoreQuery() {
+    return '<div class="tr-section"><div class="tr-toolbar"><input type="text" id="scoreQueryInput" class="tr-input" style="max-width:320px" placeholder="输入学员姓名或课程关键字查询" oninput="App.queryScore(this.value)"></div>'
+      + '<div id="scoreQueryResult">'+buildScoreQueryTable('')+'</div></div>';
+  }
+  function buildScoreQueryTable(kw){
+    var t=Store.getTraining(); var subs=(t.submissions||[]).slice();
+    if(kw){kw=kw.trim(); subs=subs.filter(function(s){var exam=(t.exams||[]).find(function(e){return e.id===s.examId;}); var cn=exam?courseNameOf(exam.courseId):''; return (s.trainee||'').indexOf(kw)>=0 || cn.indexOf(kw)>=0;});}
+    if(!subs.length) return '<p class="tr-empty">无匹配成绩记录</p>';
+    var rows=subs.map(function(s){var exam=(t.exams||[]).find(function(e){return e.id===s.examId;}); var cn=exam?courseNameOf(exam.courseId):'-'; return '<tr><td>'+trEsc(s.trainee||'匿名')+'</td><td>'+trEsc(cn)+'</td><td>'+s.score+'/'+s.total+'</td><td>'+(s.passed?'<span class="tr-pass">合格</span>':'<span class="tr-fail">不合格</span>')+'</td><td>'+trEsc(s.submittedAt||'')+'</td></tr>';}).join('');
+    return '<table class="tr-table"><thead><tr><th>受训者</th><th>课程</th><th>得分</th><th>结果</th><th>提交时间</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+  function queryScore(kw){var el=document.getElementById('scoreQueryResult'); if(el) el.innerHTML=buildScoreQueryTable(kw);}
+  function renderTrainingFeedback() {
+    var t = Store.getTraining();
+    var hist = (t.feedback||[]).slice().reverse().map(function(f){
+      return '<div class="tr-fb-item"><div class="tr-fb-head"><span class="tr-fb-from">'+trEsc(f.from||'匿名')+'</span><span class="tr-fb-type">'+fbTypeLabel(f.type)+'</span><span class="tr-fb-date">'+trEsc(f.createdAt||'')+'</span></div><div class="tr-fb-content">'+trEsc(f.content)+'</div></div>';
+    }).join('');
+    return '<div class="tr-section"><div class="tr-fb-form">'
+      + '<h4>提交培训建议 / 反馈</h4>'
+      + '<input type="text" id="fbFrom" class="tr-input" placeholder="您的称呼">'
+      + '<input type="text" id="fbContact" class="tr-input" placeholder="联系方式(可选)">'
+      + '<select id="fbType" class="tr-input"><option value="content">培训内容</option><option value="form">培训形式</option><option value="trainer">讲师</option><option value="other">其他</option></select>'
+      + '<textarea id="fbContent" class="tr-textarea" placeholder="请填写您对培训内容、形式、讲师等的意见或建议..."></textarea>'
+      + '<button class="btn btn-sm btn-primary" onclick="App.submitTrainingFeedback()">提交反馈</button>'
+      + '</div><h4 class="tr-section-title">历史反馈（'+(t.feedback||[]).length+'）</h4>'+ (hist||'<p class="tr-empty">暂无反馈</p>') +'</div>';
+  }
+  function sendTrainingEmail(subject, htmlBody, textBody){
+    return new Promise(function(resolve){
+      try {
+        var xhr=new XMLHttpRequest();
+        xhr.open('POST', _apiBaseUrl+'/api/send-email', true);
+        xhr.setRequestHeader('Content-Type','application/json');
+        xhr.timeout=8000;
+        xhr.onload=function(){ try{ resolve(JSON.parse(xhr.responseText)); }catch(e){ resolve({success:false,error:'parse'}); } };
+        xhr.onerror=function(){ resolve({success:false,error:'network'}); };
+        xhr.ontimeout=function(){ resolve({success:false,error:'timeout'}); };
+        xhr.send(JSON.stringify({to:'18372757379@139.com',subject:subject,text:textBody,html:htmlBody}));
+      } catch(e){ resolve({success:false,error:String(e)}); }
+    });
+  }
+  function submitTrainingFeedback(){
+    var from=document.getElementById('fbFrom').value.trim();
+    var contact=document.getElementById('fbContact').value.trim();
+    var type=document.getElementById('fbType').value;
+    var content=document.getElementById('fbContent').value.trim();
+    if(!content){toast('请填写反馈内容','warn');return;}
+    var fb={id:'fb_'+Date.now(), from:from||'匿名', contact:contact, type:type, content:content, createdAt:todayStr()+' '+nowTime(), handled:false};
+    var t=Store.getTraining(); var list=(t.feedback||[]).slice(); list.push(fb); Store.updateTraining('feedback', list);
+    var subject='[培训反馈] '+fbTypeLabel(type)+' - 来自'+(from||'匿名');
+    var text='反馈类型：'+fbTypeLabel(type)+'\n反馈人：'+(from||'匿名')+'\n联系方式：'+(contact||'无')+'\n内容：\n'+content+'\n\n(ESS交付管理系统 自动生成)';
+    var html='<div style="font-family:Arial"><h3>培训反馈 / 建议</h3><p><b>类型：</b>'+fbTypeLabel(type)+'</p><p><b>反馈人：</b>'+(from||'匿名')+'</p><p><b>联系方式：</b>'+(contact||'无')+'</p><p><b>内容：</b></p><p>'+trEsc(content).replace(/\n/g,'<br>')+'</p><hr><p style="color:#94a3b8;font-size:12px;">ESS交付管理系统 自动生成 | '+fb.createdAt+'</p></div>';
+    sendTrainingEmail(subject, html, text).then(function(r){
+      if(r && r.success){ toast('反馈已发送至培训工程师邮箱','success'); }
+      else { fallbackMailto(subject, text); toast('已尝试通过邮件客户端发送反馈','info'); }
+    });
+    App.showTrainingModule('feedback');
   }
 
   function buildHandoverDeliveryCard() {
@@ -4078,6 +4420,7 @@ const App = (function() {
     buildSurveyEmailBody,downloadSurveyCSV,
     sendEmailViaAPI,fallbackMailto,uploadCSVToCloud,checkBackendAvailable,
     updateProjectParams,renderDeliveryOverview,
+    openTrainingSystem,showTrainingModule,addTrainingPlan,delTrainingPlan,uploadMaterial,addMaterialMeta,downloadMaterial,delMaterial,startExam,submitExam,queryScore,submitTrainingFeedback,
     drawMfgChart,drawInstallChart,drawSATChart,drawLogisticsChart,
     toast
   };
