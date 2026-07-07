@@ -32,7 +32,7 @@ const Store = (function() {
       "phases": { "1_rnd":{"completed":100},"2_bd":{"completed":100},"3_mfg":{"completed":100},"4_logistics":{"completed":100},"5_install":{"completed":100},"6_commission":{"completed":100},"7_handover":{"completed":100},"8_aftersales":{"completed":100},"9_ops":{"completed":100} }
     },
     {
-      "id": "3", "name": "印度新德里ReNew 120MW/240MWh调峰电站(交付中)",
+      "id": "3", "name": "印度新德里ReNew 120MW/240MWh调峰电站",
       "capacity": "120MW/240MWh", "batteryTech": "LFP", "cabinetCount": "48",
       "cabinetModel": "ArcBank1.0-5.016MWh液冷预制舱", "location": "印度新德里",
       "contractType": "EPC", "status": "交付中", "currentPhase": 3,
