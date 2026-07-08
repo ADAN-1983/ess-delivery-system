@@ -3171,6 +3171,67 @@ const Store = (function() {
     return { open: open, putFile: putFile, getFile: getFile, deleteFile: deleteFile, listFiles: listFiles };
   })();
 
+  // ========== 文控中心 IndexedDB 封装（文档实体存储，与 localStorage 元数据分离）==========
+  // 与 TrainingDB 同构：文件二进制存 IndexedDB，元数据(名称/分类/版本/责任人/角色)存 localStorage 项目对象。
+  const DocDB = (function() {
+    const DB_NAME = 'ess_doc_center';
+    const STORE = 'docs';
+    const VERSION = 1;
+    function open() {
+      return new Promise(function(resolve, reject) {
+        if (!('indexedDB' in window)) { reject(new Error('当前环境不支持 IndexedDB')); return; }
+        const req = indexedDB.open(DB_NAME, VERSION);
+        req.onupgradeneeded = function(e) {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+        };
+        req.onsuccess = function(e) { resolve(e.target.result); };
+        req.onerror = function(e) { reject(e.target.error); };
+      });
+    }
+    function putFile(id, blob) {
+      return open().then(function(db) {
+        return new Promise(function(res, rej) {
+          const tx = db.transaction(STORE, 'readwrite');
+          tx.objectStore(STORE).put(blob, id);
+          tx.oncomplete = function() { res(true); };
+          tx.onerror = function() { rej(tx.error); };
+        });
+      });
+    }
+    function getFile(id) {
+      return open().then(function(db) {
+        return new Promise(function(res, rej) {
+          const tx = db.transaction(STORE, 'readonly');
+          const r = tx.objectStore(STORE).get(id);
+          r.onsuccess = function() { res(r.result || null); };
+          r.onerror = function() { rej(r.error); };
+        });
+      });
+    }
+    function deleteFile(id) {
+      return open().then(function(db) {
+        return new Promise(function(res, rej) {
+          const tx = db.transaction(STORE, 'readwrite');
+          tx.objectStore(STORE).delete(id);
+          tx.oncomplete = function() { res(true); };
+          tx.onerror = function() { rej(tx.error); };
+        });
+      });
+    }
+    function listFiles() {
+      return open().then(function(db) {
+        return new Promise(function(res, rej) {
+          const tx = db.transaction(STORE, 'readonly');
+          const r = tx.objectStore(STORE).getAllKeys();
+          r.onsuccess = function() { res(r.result || []); };
+          r.onerror = function() { rej(r.error); };
+        });
+      });
+    }
+    return { open: open, putFile: putFile, getFile: getFile, deleteFile: deleteFile, listFiles: listFiles };
+  })();
+
   // ========== 初始化（同步优先，异步增强）==========
 
   async function init() {
@@ -3239,6 +3300,14 @@ const Store = (function() {
           parsed.training.outline = JSON.parse(JSON.stringify(EMBEDDED_TRAINING.outline));
           ['plans','progress','materials','exams','submissions','feedback'].forEach(function(k){
             if (!Array.isArray(parsed.training[k])) parsed.training[k] = JSON.parse(JSON.stringify(EMBEDDED_TRAINING[k] || []));
+          });
+          // ★ v1.11 迁移：质量/文控/物流 三域键补全（保留旧数据）
+          if (Array.isArray(parsed.projects)) parsed.projects.forEach(function(pj){
+            if (!pj.quality || typeof pj.quality !== 'object') pj.quality = { records: [] };
+            if (!Array.isArray(pj.quality.records)) pj.quality.records = [];
+            if (!Array.isArray(pj.documents)) pj.documents = [];
+            if (!pj.logistics || typeof pj.logistics !== 'object') pj.logistics = { shipments: [] };
+            if (!Array.isArray(pj.logistics.shipments)) pj.logistics.shipments = [];
           });
           return parsed;
         }
@@ -3518,6 +3587,67 @@ const Store = (function() {
     return ph;
   }
 
+  function _getProject(projectId) {
+    if (!_state || !_state.projects) return null;
+    var pid = projectId || _state.selectedProjectId;
+    return _state.projects.find(function(p) { return p.id === pid; }) || null;
+  }
+
+  // ===== v1.11 质量管控数据API =====
+  function getQualityData(projectId) {
+    var pj = _getProject(projectId);
+    if (!pj) return { records: [] };
+    if (!pj.quality || typeof pj.quality !== 'object') pj.quality = { records: [] };
+    if (!Array.isArray(pj.quality.records)) pj.quality.records = [];
+    return pj.quality;
+  }
+  function saveQualityData(projectId, data) {
+    var pj = _getProject(projectId);
+    if (!pj) return false;
+    pj.quality = data || { records: [] };
+    if (!Array.isArray(pj.quality.records)) pj.quality.records = [];
+    persist();
+    notify('qualityChanged', { project: pj });
+    notify('dataChanged', {});
+    return true;
+  }
+
+  // ===== v1.11 文控中心数据API =====
+  function getDocuments(projectId) {
+    var pj = _getProject(projectId);
+    if (!pj) return [];
+    if (!Array.isArray(pj.documents)) pj.documents = [];
+    return pj.documents;
+  }
+  function saveDocuments(projectId, docs) {
+    var pj = _getProject(projectId);
+    if (!pj) return false;
+    pj.documents = docs || [];
+    persist();
+    notify('documentsChanged', { project: pj });
+    notify('dataChanged', {});
+    return true;
+  }
+
+  // ===== v1.11 物流追踪数据API =====
+  function getLogistics(projectId) {
+    var pj = _getProject(projectId);
+    if (!pj) return { shipments: [] };
+    if (!pj.logistics || typeof pj.logistics !== 'object') pj.logistics = { shipments: [] };
+    if (!Array.isArray(pj.logistics.shipments)) pj.logistics.shipments = [];
+    return pj.logistics;
+  }
+  function saveLogistics(projectId, data) {
+    var pj = _getProject(projectId);
+    if (!pj) return false;
+    pj.logistics = data || { shipments: [] };
+    if (!Array.isArray(pj.logistics.shipments)) pj.logistics.shipments = [];
+    persist();
+    notify('logisticsChanged', { project: pj });
+    notify('dataChanged', {});
+    return true;
+  }
+
   function on(event, fn) { _listeners.push(fn); }
   function off(fn) { _listeners = _listeners.filter(function(f) { return f !== fn; }); }
 
@@ -3539,6 +3669,13 @@ const Store = (function() {
     saveTraining: saveTraining,
     updateTraining: updateTraining,
     TrainingDB: TrainingDB,
+    DocDB: DocDB,
+    getQualityData: getQualityData,
+    saveQualityData: saveQualityData,
+    getDocuments: getDocuments,
+    saveDocuments: saveDocuments,
+    getLogistics: getLogistics,
+    saveLogistics: saveLogistics,
     getSOPCheckState: getSOPCheckState,
     setSOPCheckState: setSOPCheckState,
     exportFullJSON: exportFullJSON,

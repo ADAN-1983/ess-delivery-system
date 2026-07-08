@@ -1199,3 +1199,69 @@ body {
 .training-entry-btn { background: var(--c-primary) !important; color: #fff !important; border-color: var(--c-primary) !important; }
 .training-entry-btn:hover { background: var(--c-primary-light) !important; }
 
+/* ===== v1.11 项目管理驾驶舱 ===== */
+.cockpit-wrap { display:flex; flex-direction:column; gap:14px; }
+.cockpit-head { display:flex; flex-direction:column; gap:10px; }
+.cockpit-title { font-size:18px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:10px; }
+.cockpit-subtabs { display:flex; flex-wrap:wrap; gap:6px; border-bottom:1px solid var(--c-gray-200); padding-bottom:8px; }
+.cockpit-subtabs .sub-tab-btn { padding:6px 14px; border-radius:8px 8px 0 0; }
+.cockpit-panel { padding-top:6px; }
+.cockpit-section-title { font-size:14px; font-weight:600; color:#334155; margin:14px 0 8px; }
+.cockpit-chart-box { background:#fff; border:1px solid var(--c-gray-200); border-radius:10px; padding:12px; }
+
+.cockpit-kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+.cockpit-kpi-card { background:#fff; border:1px solid var(--c-gray-200); border-left:4px solid var(--c-gray-300); border-radius:10px; padding:14px 16px; box-shadow:0 1px 2px rgba(15,23,42,.04); }
+.cockpit-kpi-card .ck-title { font-size:13px; color:#64748b; }
+.cockpit-kpi-card .ck-val { font-size:24px; font-weight:700; color:#0f172a; margin:4px 0 2px; }
+.cockpit-kpi-card .ck-sub { font-size:12px; color:#94a3b8; }
+.cockpit-kpi-card.kpi-good { border-left-color:#16a34a; } .cockpit-kpi-card.kpi-good .ck-val { color:#16a34a; }
+.cockpit-kpi-card.kpi-warn { border-left-color:#f59e0b; } .cockpit-kpi-card.kpi-warn .ck-val { color:#d97706; }
+.cockpit-kpi-card.kpi-bad { border-left-color:#dc2626; } .cockpit-kpi-card.kpi-bad .ck-val { color:#dc2626; }
+.cockpit-kpi-card.kpi-neutral { border-left-color:#2563eb; } .cockpit-kpi-card.kpi-neutral .ck-val { color:#2563eb; }
+
+.portfolio-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+.portfolio-card { background:#fff; border:1px solid var(--c-gray-200); border-radius:10px; padding:14px; }
+.pc-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+.pc-name { font-weight:600; color:#0f172a; font-size:14px; }
+.pc-meta { font-size:12px; color:#64748b; margin:6px 0 10px; }
+.pc-bar { height:8px; background:var(--c-gray-100); border-radius:6px; overflow:hidden; }
+.pc-bar-fill { height:100%; border-radius:6px; transition:width .4s; }
+.pc-foot { display:flex; justify-content:space-between; font-size:12px; color:#64748b; margin-top:6px; }
+
+/* 驾驶舱特殊标签按钮 */
+.tab-btn.cockpit-tab { background:linear-gradient(135deg,#2563eb,#7c3aed); color:#fff; border-color:transparent; font-weight:600; }
+.tab-btn.cockpit-tab:hover { filter:brightness(1.08); }
+.tab-btn.cockpit-tab.active { background:linear-gradient(135deg,#1d4ed8,#6d28d9); box-shadow:0 2px 8px rgba(37,99,235,.35); }
+
+/* 缺失的 badge 变体（品质/驾驶舱复用） */
+.badge-good { background:var(--c-success-light); color:var(--c-success); padding:1px 8px; border-radius:10px; font-size:12px; }
+.badge-warn { background:var(--c-warning-light); color:var(--c-warning); padding:1px 8px; border-radius:10px; font-size:12px; }
+.badge-info { background:#dbeafe; color:#1d4ed8; padding:1px 8px; border-radius:10px; font-size:12px; }
+
+/* ===== v1.11 文控中心 ===== */
+.doc-center-box { max-width:960px; }
+.doc-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+.doc-upload-group { display:flex; gap:6px; align-items:center; }
+.doc-upload-btn { background:var(--c-primary); color:#fff; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; }
+.doc-upload-btn:hover { background:var(--c-primary-light); }
+.doc-list-wrap { max-height:60vh; overflow:auto; }
+.doc-table th, .doc-table td { padding:8px 10px; font-size:13px; }
+.doc-cat-tag { padding:2px 8px; border-radius:10px; font-size:12px; white-space:nowrap; }
+.cat-contract { background:#ede9fe; color:#6d28d9; } .cat-test { background:#dbeafe; color:#1d4ed8; } .cat-acceptance { background:#dcfce7; color:#15803d; } .cat-drawing { background:#fef3c7; color:#b45309; } .cat-manual { background:#e0f2fe; color:#0369a1; } .cat-other { background:#e2e8f0; color:#475569; }
+.role-tag { padding:2px 8px; border-radius:10px; font-size:12px; white-space:nowrap; }
+.role-all { background:#e2e8f0; color:#334155; } .role-client { background:#fce7f3; color:#be185d; } .role-pm { background:#dcfce7; color:#15803d; } .role-qc { background:#fee2e2; color:#b91c1c; } .role-engineer { background:#ffedd5; color:#c2410c; }
+.doc-note { color:#94a3b8; font-size:12px; }
+.doc-ops { white-space:nowrap; }
+.op-btn { background:var(--c-gray-100); border:1px solid var(--c-gray-200); border-radius:6px; padding:3px 10px; font-size:12px; cursor:pointer; color:#334155; margin-right:4px; }
+.op-btn:hover { background:var(--c-primary-light); color:#fff; border-color:var(--c-primary); }
+.op-btn.danger:hover { background:var(--c-danger); border-color:var(--c-danger); }
+.doc-stat { margin-top:10px; font-size:12px; color:#94a3b8; }
+.doc-text-preview { background:#0f172a; color:#e2e8f0; padding:16px; border-radius:8px; max-height:70vh; overflow:auto; font-family:Consolas,monospace; font-size:13px; white-space:pre-wrap; }
+.empty-tip { padding:24px; text-align:center; color:var(--c-gray-400); font-size:13px; }
+
+/* 响应式 */
+@media (max-width: 900px) {
+  .cockpit-kpi-row { grid-template-columns:repeat(2,1fr); }
+  .portfolio-grid { grid-template-columns:1fr; }
+}
+

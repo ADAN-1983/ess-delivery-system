@@ -168,11 +168,13 @@ const App = (function() {
   function renderTabNav() {
     const nav = document.getElementById('tabNav');
     if (!nav) return;
-    nav.innerHTML = PHASE_DEFS.map((def) => {
+    const cockpitBtn = `<button class="tab-btn cockpit-tab" data-tab-key="cockpit" onclick="App.switchTab('cockpit')" title="跨项目组合总览 / KPI / 交付分析 / 质量洞察 / 文控">📊 项目管理驾驶舱</button>`;
+    const phaseBtns = PHASE_DEFS.map((def) => {
       const extraClass = def.key === '9_ops' ? ' dashed-style' : '';
       const isActive = currentTab === def.key;
       return `<button class="tab-btn${extraClass}${isActive ? ' active' : ''}" data-tab-key="${def.key}" onclick="App.switchTab('${def.key}')">${def.icon} ${def.shortName}</button>`;
     }).join('');
+    nav.innerHTML = cockpitBtn + phaseBtns;
   }
 
   function switchTab(tabKey) {
@@ -186,6 +188,7 @@ const App = (function() {
     if (!content) return;
 
     const renderers = {
+      'cockpit': renderCockpitTab,
       '1_rnd': renderRndTab, '2_bd': renderBDTab, '3_mfg': renderMfgTab,
       '4_logistics': renderLogisticsTab, '5_install': renderInstallTab,
       '6_commission': renderCommissionTab, '7_handover': renderHandoverTab,
@@ -195,6 +198,7 @@ const App = (function() {
     setTimeout(function() {
       bindSubTabEvents();
       // 初始化各Tab的特定状态
+      if (tabKey === 'cockpit') { initCockpit(); }
       if (tabKey === '1_rnd') initRDAllCompletedState();
       if (tabKey === '3_mfg') { initMfgAllCompletedState(); drawMfgChart(); refreshMfgRiskCard('mfg-fat'); }
       if (tabKey === '5_install') {
@@ -649,24 +653,40 @@ const App = (function() {
   }
 
   function renderMfgQCContent() {
-    // 左栏：IPQC/FQC/OQC检验点（占55%）
+    var pj = Store.getSelectedProject();
+    var pjId = pj.id;
+    var qcDefs = [
+      {qid:'qc1',phase:'IPQC',content:'焊接点抽检(熔深+外观)',freq:'每点必检',record:'焊接检验表'},
+      {qid:'qc2',phase:'IPQC',content:'紧固力矩复测(力矩扳手)',freq:'抽检≥30%',record:'紧固力矩检验表'},
+      {qid:'qc3',phase:'IPQC',content:'工艺执行情况',freq:'巡视每小时',record:'IPQC巡视记录'},
+      {qid:'qc4',phase:'FQC',content:'整机外观检查(漂伤/划伤/标签)',freq:'100%',record:'FQC检验报告'},
+      {qid:'qc5',phase:'FQC',content:'电气安全检验(绝缘/接地/耐压)',freq:'100%',record:'电气安全检验表'},
+      {qid:'qc6',phase:'FQC',content:'功能检测(BMS/PCS/EMS/EMC)',freq:'100%',record:'功能检测报告'},
+      {qid:'qc7',phase:'OQC',content:'包装前最终检查(全面)',freq:'100%',record:'OQC出历报告'},
+      {qid:'qc8',phase:'OQC',content:'随机文件(合格证+铭牌+说明书)',freq:'100%',record:'文件核对清单'}
+    ];
+    // 左栏：IPQC/FQC/OQC 检验点（数据驱动，勾选持久化）
+    var qcRows = qcDefs.map(function(q){
+      var st = Store.getSOPCheckState(pjId, 'qc', q.qid);
+      var checked = st && st.passed ? 'checked' : '';
+      var note = (st && st.notes) ? st.notes : '';
+      return '<tr>'
+        + '<td style="text-align:center;"><input type="checkbox" class="qc-checkbox" id="' + q.qid + '" ' + checked + ' onchange="App.onQCChange(this,\'' + q.qid + '\')"></td>'
+        + '<td><strong>' + q.phase + '</strong></td>'
+        + '<td>' + q.content + '</td>'
+        + '<td>' + q.freq + '</td>'
+        + '<td>' + q.record + '</td>'
+        + '<td><input class="inline-input qc-note" id="qcnote-' + q.qid + '" value="' + note.replace(/"/g,'&quot;') + '" placeholder="备注" style="width:90px;" onchange="App.onQCChange(document.getElementById(\'' + q.qid + '\'),\'' + q.qid + '\')"></td>'
+        + '</tr>';
+    }).join('');
     var qcLeft = '<div class="card" style="height:100%;"><div class="card-header" style="display:flex;align-items:center;justify-content:flex-start;">'
       + '<input type="checkbox" id="selall-qc" onchange="App.toggleQCSelectAll(this)" title="全选/全不选" style="width:16px;height:16px;cursor:pointer;accent-color:var(--c-primary);margin-right:6px;flex-shrink:0;">'
       + '<span>质量控制 IPQC/FQC/OQC 检验点</span></div>'
       + '<div class="card-body scrollable">'
       + '<table class="delivery-table qc-table"><thead><tr>'
       + '<th style="width:36px;text-align:center;"><input type="checkbox" id="selall-qc-header" onchange="App.toggleQCSelectAll(this)" title="全选" style="width:16px;height:16px;cursor:pointer;"></th>'
-      + '<th>检验环节</th><th>检验内容</th><th>检验频率</th><th>记录</th></tr></thead><tbody>'
-      + [
-{id:'qc1',phase:'IPQC',content:'焊接点抽检(熔深+外观)',freq:'每点必检',record:'焊接检验表'},
-{id:'qc2',phase:'IPQC',content:'紧固力矩复测(力矩扳手)',freq:'抽检≥30%',record:'紧固力矩检验表'},
-{id:'qc3',phase:'IPQC',content:'工艺执行情况',freq:'巡视每小时',record:'IPQC巡视记录'},
-{id:'qc4',phase:'FQC',content:'整机外观检查(漂伤/划伤/标签)',freq:'100%',record:'FQC检验报告'},
-{id:'qc5',phase:'FQC',content:'电气安全检验(绝缘/接地/耐压)',freq:'100%',record:'电气安全检验表'},
-{id:'qc6',phase:'FQC',content:'功能检测(BMS/PCS/EMS/EMC)',freq:'100%',record:'功能检测报告'},
-{id:'qc7',phase:'OQC',content:'包装前最终检查(全面)',freq:'100%',record:'OQC出历报告'},
-{id:'qc8',phase:'OQC',content:'随机文件(合格证+铭牌+说明书)',freq:'100%',record:'文件核对清单'}
-        ].map(function(q){ return '<tr><td style="text-align:center;"><input type="checkbox" class="qc-checkbox" id="' + q.id + '"></td><td><strong>' + q.phase + '</strong>: ' + q.content + '</td><td>' + q.freq + '</td><td>' + q.record + '</td><td><input class="inline-input" placeholder="备注" style="width:80px;"></td></tr>'; }).join('')
+      + '<th>检验环节</th><th>检验内容</th><th>检验频率</th><th>记录</th><th>备注</th></tr></thead><tbody>'
+      + qcRows
       + '</tbody></table></div></div>';
     // 右栏：协同信息
     var qcRight = '<div style="display:flex;flex-direction:column;gap:12px;">'
@@ -677,7 +697,139 @@ const App = (function() {
         {item:'质量问题追踪表(当月开录当月关)',owner:'质量',deadline:'每月更新',status:'info'}
       ])
       + '</div>';
-    return '<div style="display:grid;grid-template-columns:55% 1fr;gap:16px;">' + qcLeft + qcRight + '</div>';
+    // 下方：质量记录 + 分析报表（全宽）
+    var qaBlock = renderQualityRecordsAndReport(pjId);
+    return '<div style="display:grid;grid-template-columns:55% 1fr;gap:16px;">' + qcLeft + qcRight + '</div>'
+      + '<div style="margin-top:16px;">' + qaBlock + '</div>';
+  }
+
+  // 质量记录录入 + 高频问题 Pareto 分析
+  function renderQualityRecordsAndReport(pjId) {
+    var qData = Store.getQualityData(pjId);
+    var records = qData.records || [];
+    var typeOpts = '<option value="factory">出厂检测</option><option value="site">现场验收</option><option value="iqc">来料检</option><option value="ncr">NCR整改</option>';
+    var sevOpts = '<option value="low">轻微</option><option value="mid">一般</option><option value="high">严重</option><option value="critical">致命</option>';
+    var statusOpts = '<option value="open">未关闭</option><option value="closed">已关闭</option><option value="verified">已验证</option>';
+    var formHTML = '<div class="card" style="margin-bottom:14px;"><div class="card-header">➕ 质量记录录入（出厂检测 / 现场验收 / 来料 / NCR）</div>'
+      + '<div class="card-body"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;">'
+      + '<label class="fm-label">类型<select id="qrType" class="inline-input">' + typeOpts + '</select></label>'
+      + '<label class="fm-label">日期<input id="qrDate" type="date" class="inline-input" value="' + new Date().toISOString().slice(0,10) + '"></label>'
+      + '<label class="fm-label">检验员<input id="qrInspector" class="inline-input" placeholder="姓名"></label>'
+      + '<label class="fm-label" style="flex:1;min-width:180px;">问题点<input id="qrItem" class="inline-input" placeholder="如：液冷管路渗漏"></label>'
+      + '<label class="fm-label">严重度<select id="qrSeverity" class="inline-input">' + sevOpts + '</select></label>'
+      + '<label class="fm-label">状态<select id="qrStatus" class="inline-input">' + statusOpts + '</select></label>'
+      + '<button class="btn btn-primary" onclick="App.saveQualityRecord()">保存记录</button>'
+      + '</div></div></div>';
+    var listHTML = '<div class="card"><div class="card-header">📋 质量记录台账（' + records.length + ' 条）</div><div class="card-body scrollable" style="max-height:260px;overflow:auto;">'
+      + (records.length ? '<table class="delivery-table"><thead><tr><th>类型</th><th>日期</th><th>检验员</th><th>问题点</th><th>严重度</th><th>状态</th><th></th></tr></thead><tbody>'
+        + records.slice().reverse().map(function(r){
+            var tMap = {factory:'出厂',site:'现场',iqc:'来料',ncr:'NCR'};
+            var sMap = {low:'轻微',mid:'一般',high:'严重',critical:'致命'};
+            var stMap = {open:'未关闭',closed:'已关闭',verified:'已验证'};
+            var sevCls = r.severity==='critical'?'danger':r.severity==='high'?'warning':r.severity==='mid'?'info':'default';
+            return '<tr><td>' + (tMap[r.type]||r.type) + '</td><td>' + (r.date||'') + '</td><td>' + (r.inspector||'') + '</td><td>' + (r.item||'') + '</td>'
+              + '<td><span class="badge badge-' + sevCls + '">' + (sMap[r.severity]||r.severity) + '</span></td>'
+              + '<td>' + (stMap[r.status]||r.status) + '</td>'
+              + '<td><button class="btn btn-sm btn-outline" onclick="App.delQualityRecord(\'' + r.id + '\')">删除</button></td></tr>';
+          }).join('')
+        + '</tbody></table>'
+        : '<div style="padding:20px;text-align:center;color:var(--c-gray-400);">暂无质量记录，录入后自动生成台账与分析</div>')
+      + '</div></div>';
+    var reportHTML = renderQualityReport(pjId);
+    return formHTML + listHTML + reportHTML;
+  }
+
+  // 质量分析报表：合格率 + 高频问题 Pareto
+  function renderQualityReport(pjId) {
+    var pj = Store.getSelectedProject();
+    // 1) IPQC/FQC/OQC 检验点合格率
+    var qcDefs = ['qc1','qc2','qc3','qc4','qc5','qc6','qc7','qc8'];
+    var qcDone = 0;
+    qcDefs.forEach(function(id){ var st = Store.getSOPCheckState(pjId,'qc',id); if (st && st.passed) qcDone++; });
+    var qcRate = Math.round(qcDone / qcDefs.length * 100);
+    // 2) 质量记录统计
+    var records = (Store.getQualityData(pjId).records || []);
+    var total = records.length;
+    var closed = records.filter(function(r){ return r.status === 'closed' || r.status === 'verified'; }).length;
+    var openCnt = total - closed;
+    var passRate = total ? Math.round(closed / total * 100) : 0;
+    // 3) 高频问题 Pareto（按问题点聚合）
+    var freqMap = {};
+    records.forEach(function(r){ if (r.item) freqMap[r.item] = (freqMap[r.item]||0) + 1; });
+    var freqArr = Object.keys(freqMap).map(function(k){ return { item:k, cnt:freqMap[k] }; }).sort(function(a,b){ return b.cnt - a.cnt; });
+    var maxCnt = freqArr.length ? freqArr[0].cnt : 0;
+    var cum = 0, totalCnt = freqArr.reduce(function(s,x){return s+x.cnt;},0);
+    var paretoRows = freqArr.slice(0, 8).map(function(x){
+      cum += x.cnt;
+      var pct = totalCnt ? Math.round(x.cnt / totalCnt * 100) : 0;
+      var cumPct = totalCnt ? Math.round(cum / totalCnt * 100) : 0;
+      return '<tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + (x.item||'') + '">' + (x.item||'') + '</td>'
+        + '<td>' + x.cnt + '</td>'
+        + '<td><div style="background:var(--c-primary);height:14px;border-radius:3px;width:' + (maxCnt?Math.round(x.cnt/maxCnt*100):0) + '%;min-width:2px;"></div></td>'
+        + '<td>' + pct + '%</td>'
+        + '<td><span style="color:' + (cumPct>=80?'#dc2626':'#2563eb') + ';font-weight:600;">' + cumPct + '%</span></td></tr>';
+    }).join('');
+    // 组合 KPI 卡
+    var kpi = '<div class="quality-kpi-row">'
+      + qualityKpiCard('IPQC/FQC/OQC 合格率', qcRate + '%', qcDone + '/' + qcDefs.length, qcRate>=90?'good':qcRate>=70?'warn':'bad')
+      + qualityKpiCard('质量记录闭环率', passRate + '%', closed + '/' + total, passRate>=90?'good':passRate>=70?'warn':'bad')
+      + qualityKpiCard('未关闭问题', openCnt + ' 项', '待处理', openCnt===0?'good':'warn')
+      + qualityKpiCard('高频问题点', freqArr.length ? (freqArr[0].item + ' ×' + freqArr[0].cnt) : '—', 'Top1', 'neutral')
+      + '</div>';
+    var paretoHTML = '<div class="card" style="margin-top:14px;"><div class="card-header">📊 高频质量问题 Pareto 分析（按问题点出现频次，累计线定位关键少数）</div>'
+      + '<div class="card-body">'
+      + (freqArr.length ? '<table class="delivery-table"><thead><tr><th>问题点</th><th>频次</th><th style="width:160px;">占比分布</th><th>单项%</th><th>累计%</th></tr></thead><tbody>' + paretoRows + '</tbody></table>'
+        : '<div style="padding:18px;text-align:center;color:var(--c-gray-400);">暂无问题点数据，录入质量记录后自动生成 Pareto</div>')
+      + '</div></div>';
+    return '<div class="card" style="margin-top:14px;"><div class="card-header">🧪 质量分析报表 · ' + (pj?pj.name:'') + '</div>'
+      + '<div class="card-body">' + kpi + '</div></div>' + paretoHTML;
+  }
+
+  function qualityKpiCard(title, val, sub, tone) {
+    var toneCls = tone==='good'?'kpi-good':tone==='warn'?'kpi-warn':tone==='bad'?'kpi-bad':'kpi-neutral';
+    return '<div class="quality-kpi-card ' + toneCls + '"><div class="qk-title">' + title + '</div><div class="qk-val">' + val + '</div><div class="qk-sub">' + sub + '</div></div>';
+  }
+
+  function onQCChange(cb, qcId) {
+    var pj = Store.getSelectedProject();
+    if (!pj) return;
+    var noteEl = document.getElementById('qcnote-' + qcId);
+    var note = noteEl ? noteEl.value : '';
+    Store.setSOPCheckState(pj.id, 'qc', qcId, cb.checked, note);
+    var reportEl = document.getElementById('qualityReportArea');
+    if (reportEl) reportEl.innerHTML = renderQualityReport(pj.id);
+  }
+
+  function saveQualityRecord() {
+    var pj = Store.getSelectedProject();
+    if (!pj) return;
+    var item = document.getElementById('qrItem');
+    if (!item || !item.value.trim()) { toast('请填写问题点', 'error'); return; }
+    var qData = Store.getQualityData(pj.id);
+    qData.records = qData.records || [];
+    qData.records.push({
+      id: 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      type: (document.getElementById('qrType')||{}).value || 'factory',
+      date: (document.getElementById('qrDate')||{}).value || new Date().toISOString().slice(0,10),
+      inspector: (document.getElementById('qrInspector')||{}).value || '',
+      item: item.value.trim(),
+      severity: (document.getElementById('qrSeverity')||{}).value || 'mid',
+      status: (document.getElementById('qrStatus')||{}).value || 'open'
+    });
+    Store.saveQualityData(pj.id, qData);
+    toast('质量记录已保存', 'success');
+    var area = document.querySelector('.sub-tab-panel[data-panel="mfg-qc"]');
+    if (area) area.innerHTML = renderMfgQCContent();
+  }
+
+  function delQualityRecord(recId) {
+    var pj = Store.getSelectedProject();
+    if (!pj) return;
+    var qData = Store.getQualityData(pj.id);
+    qData.records = (qData.records || []).filter(function(r){ return r.id !== recId; });
+    Store.saveQualityData(pj.id, qData);
+    var area = document.querySelector('.sub-tab-panel[data-panel="mfg-qc"]');
+    if (area) area.innerHTML = renderMfgQCContent();
   }
 
   function renderMfgPackContent() {
@@ -849,31 +1001,125 @@ const App = (function() {
   }
 
   function renderLogTrackContent() {
-    const p = Store.getSelectedProject();
-    const batches = Math.ceil((p?.cabinetCount||48)/16);
-    // 左栏：批次跟踪（占60%）
+    var p = Store.getSelectedProject();
+    var pjId = p.id;
+    var log = Store.getLogistics(pjId);
+    var shipments = log.shipments || [];
+    var statusMap = {planned:'计划中',shipped:'已发货',intransit:'在途',arrived:'已到货'};
+    var statusSel = function(cur){ return Object.keys(statusMap).map(function(k){ return '<option value="'+k+'"'+(k===cur?' selected':'')+'>'+statusMap[k]+'</option>'; }).join(''); };
+    // 左栏：批次跟踪（数据驱动，持久化）
+    var rows = shipments.map(function(s){
+      return '<tr data-sid="'+s.id+'">'
+        + '<td><input class="inline-input" style="width:80px;" value="'+escAttr(s.batch)+'" onchange="App.updateShipmentField(\''+s.id+'\',\'batch\',this.value)"></td>'
+        + '<td><input class="inline-input" style="width:120px;" value="'+escAttr(s.cabinetRange)+'" onchange="App.updateShipmentField(\''+s.id+'\',\'cabinetRange\',this.value)"></td>'
+        + '<td><select class="inline-input" style="width:90px;" onchange="App.updateShipmentField(\''+s.id+'\',\'status\',this.value)">' + statusSel(s.status) + '</select></td>'
+        + '<td><input class="inline-input" style="width:110px;" type="date" value="'+escAttr(s.planShip)+'" onchange="App.updateShipmentField(\''+s.id+'\',\'planShip\',this.value)"></td>'
+        + '<td><input class="inline-input" style="width:110px;" type="date" value="'+escAttr(s.actualShip)+'" onchange="App.updateShipmentField(\''+s.id+'\',\'actualShip\',this.value)"></td>'
+        + '<td><input class="inline-input" style="width:110px;" type="date" value="'+escAttr(s.arrive)+'" onchange="App.updateShipmentField(\''+s.id+'\',\'arrive\',this.value)"></td>'
+        + '<td><input class="inline-input" style="width:90px;" value="'+escAttr(s.region)+'" placeholder="如:孟买" onchange="App.updateShipmentField(\''+s.id+'\',\'region\',this.value)"></td>'
+        + '<td><input class="inline-input" style="width:70px;" type="number" step="0.1" min="0" value="'+escAttr(s.damageRate)+'" onchange="App.updateShipmentField(\''+s.id+'\',\'damageRate\',this.value)"></td>'
+        + '<td><input class="inline-input" style="width:90px;" value="'+escAttr(s.note)+'" placeholder="备注" onchange="App.updateShipmentField(\''+s.id+'\',\'note\',this.value)"></td>'
+        + '<td><button class="btn btn-sm btn-outline" onclick="App.delShipment(\''+s.id+'\')">删除</button></td>'
+        + '</tr>';
+    }).join('');
     var trackLeft = '<div class="card" style="height:100%;"><div class="card-header" style="display:flex;align-items:center;gap:8px;">'
-      + '<input type="checkbox" id="selall-batch" onchange="App.toggleBatchSelectAll(this)" title="全选/全不选" style="width:16px;height:16px;cursor:pointer;accent-color:var(--c-primary);">'
-      + '<span>批次跟踪</span> <span class="badge badge-info">共' + batches + '批</span></div>'
+      + '<span>批次跟踪</span> <span class="badge badge-info">共' + shipments.length + ' 批</span>'
+      + '<button class="btn btn-sm btn-primary" style="margin-left:auto;" onclick="App.addShipment()">＋ 新增批次</button></div>'
       + '<div class="card-body scrollable">'
-      + '<table class="delivery-table batch-table" style="min-width:700px;"><thead><tr>'
-      + '<th style="width:36px;text-align:center;"><input type="checkbox" id="selall-batch-header" onchange="App.toggleBatchSelectAll(this)" title="全选" style="width:16px;height:16px;cursor:pointer;"></th>'
-      + '<th>批次</th><th>柜号</th><th>状态</th><th>预计发货</th><th>实际发货</th><th>到货</th><th>备注</th></tr></thead><tbody>'
-      + Array.from({length:batches},function(_,i){ return '<tr><td style="text-align:center;"><input type="checkbox" class="batch-checkbox" id="batch-' + (i+1) + '"></td>'
-        + '<td>第' + (i+1) + '批</td><td>#' + (i*16+1) + '-#' + Math.min((i+1)*16,p?.cabinetCount||48) + '</td>'
-        + '<td><select class="inline-input" style="width:90px"><option>计划中</option><option>已发货</option><option>在途</option><option>已到货</option></select></td>'
-        + '<td><input type="date" class="inline-input" style="width:110px"></td><td><input type="date" class="inline-input" style="width:110px"></td>'
-        + '<td><input type="date" class="inline-input" style="width:110px"></td><td><input class="inline-input" placeholder="备注" style="width:90px;"></td></tr>'; }).join('')
+      + '<table class="delivery-table batch-table" style="min-width:920px;"><thead><tr>'
+      + '<th>批次</th><th>柜号范围</th><th>状态</th><th>预计发货</th><th>实际发货</th><th>到货</th><th>区域</th><th>货损率%</th><th>备注</th><th></th></tr></thead><tbody>'
+      + (rows || '<tr><td colspan="10" style="text-align:center;color:var(--c-gray-400);padding:18px;">暂无批次，点击「新增批次」开始跟踪</td></tr>')
       + '</tbody></table></div></div>';
-    // 右栏：协同信息（占40%）
+    // 右栏：协同信息 + 物流分析
     var trackRight = '<div style="display:flex;flex-direction:column;gap:12px;">'
       + buildDeliveryTableCard('批次管理与交付协同',[
         {item:'批次发货通知(客户/监理)',owner:'物流',deadline:'发货前',status:'pending'},
         {item:'每批到货验收报告',owner:'交付工程师',deadline:'到货当天',status:'pending'},
         {item:'运输损坏记录与索赔',owner:'物流',deadline:'发现即报',status:'warn'}])
+      + '<div id="logTrackSummary">' + renderLogTrackSummary(pjId) + '</div>'
       + '</div>';
-    return '<div style="display:grid;grid-template-columns:60% 1fr;gap:16px;">' + trackLeft + trackRight + '</div>';
+    return '<div style="display:grid;grid-template-columns:65% 1fr;gap:16px;">' + trackLeft + trackRight + '</div>';
   }
+
+  // 物流追踪分析：延误率 / 货损率 / 区域瓶颈
+  function renderLogTrackSummary(pjId) {
+    var log = Store.getLogistics(pjId);
+    var shipments = log.shipments || [];
+    var arrived = shipments.filter(function(s){ return s.status === 'arrived'; });
+    var intransit = shipments.filter(function(s){ return s.status === 'intransit' || s.status === 'shipped'; });
+    // 延误计算
+    function delayOf(s){
+      var base = s.arrive || s.actualShip;
+      if (!base || !s.planShip) return 0;
+      var d1 = Date.parse(s.planShip), d2 = Date.parse(base);
+      if (isNaN(d1) || isNaN(d2)) return 0;
+      return Math.max(0, Math.round((d2 - d1) / 86400000));
+    }
+    var delayed = shipments.filter(function(s){ return delayOf(s) > 0; });
+    var delayRate = shipments.length ? Math.round(delayed.length / shipments.length * 100) : 0;
+    var avgDamage = shipments.length ? (shipments.reduce(function(s,x){ return s + (parseFloat(x.damageRate)||0); }, 0) / shipments.length) : 0;
+    // 区域延误聚合
+    var regionMap = {};
+    shipments.forEach(function(s){ var r = s.region || '未标注'; if (!regionMap[r]) regionMap[r] = {total:0, delayed:0, damage:0}; regionMap[r].total++; if (delayOf(s)>0) regionMap[r].delayed++; regionMap[r].damage += (parseFloat(s.damageRate)||0); });
+    var regionRows = Object.keys(regionMap).map(function(r){
+      var m = regionMap[r];
+      var dr = m.total ? Math.round(m.delayed / m.total * 100) : 0;
+      var ad = m.total ? (m.damage / m.total).toFixed(1) : '0.0';
+      var tone = dr>=50?'kpi-bad':dr>=25?'kpi-warn':'kpi-good';
+      return '<tr><td>'+r+'</td><td>'+m.total+'</td><td><span class="badge '+(dr>=50?'badge-danger':dr>=25?'badge-warning':'badge-info')+'">'+dr+'%</span></td><td>'+ad+'%</td></tr>';
+    }).join('');
+    var kpi = '<div class="quality-kpi-row">'
+      + qualityKpiCard('在途/已到货', intransit.length + '/' + arrived.length, '批次', 'neutral')
+      + qualityKpiCard('延误率', delayRate + '%', delayed.length + ' 批延误', delayRate>=25?'bad':delayRate>=10?'warn':'good')
+      + qualityKpiCard('平均货损率', avgDamage.toFixed(1) + '%', '全批次均值', avgDamage>=3?'bad':avgDamage>=1?'warn':'good')
+      + '</div>';
+    var regionHTML = '<div class="card"><div class="card-header">🌍 区域延误率 / 货损率（瓶颈识别）</div><div class="card-body scrollable" style="max-height:200px;overflow:auto;">'
+      + (Object.keys(regionMap).length ? '<table class="delivery-table"><thead><tr><th>区域</th><th>批次数</th><th>延误率</th><th>平均货损率</th></tr></thead><tbody>'+regionRows+'</tbody></table>'
+        : '<div style="padding:16px;text-align:center;color:var(--c-gray-400);">暂无区域数据</div>')
+      + '</div></div>';
+    return kpi + regionHTML;
+  }
+
+  function addShipment() {
+    var p = Store.getSelectedProject();
+    if (!p) return;
+    var log = Store.getLogistics(p.id);
+    log.shipments = log.shipments || [];
+    var idx = log.shipments.length + 1;
+    log.shipments.push({
+      id: 'sh_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
+      batch: '第' + idx + '批', cabinetRange: '', status: 'planned',
+      planShip: '', actualShip: '', arrive: '', region: '', damageRate: 0, note: ''
+    });
+    Store.saveLogistics(p.id, log);
+    var area = document.querySelector('.sub-tab-panel[data-panel="log-track"]');
+    if (area) area.innerHTML = renderLogTrackContent();
+    toast('已新增批次', 'success');
+  }
+
+  function delShipment(sid) {
+    var p = Store.getSelectedProject();
+    if (!p) return;
+    var log = Store.getLogistics(p.id);
+    log.shipments = (log.shipments || []).filter(function(s){ return s.id !== sid; });
+    Store.saveLogistics(p.id, log);
+    var area = document.querySelector('.sub-tab-panel[data-panel="log-track"]');
+    if (area) area.innerHTML = renderLogTrackContent();
+  }
+
+  function updateShipmentField(sid, field, val) {
+    var p = Store.getSelectedProject();
+    if (!p) return;
+    var log = Store.getLogistics(p.id);
+    var s = (log.shipments || []).find(function(x){ return x.id === sid; });
+    if (!s) return;
+    s[field] = (field === 'damageRate') ? (parseFloat(val) || 0) : val;
+    Store.saveLogistics(p.id, log);
+    var sumEl = document.getElementById('logTrackSummary');
+    if (sumEl) sumEl.innerHTML = renderLogTrackSummary(p.id);
+  }
+
+  function escAttr(s) { return (s==null?'':String(s)).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
   function renderLogAlertContent() {
     return buildTwoColLayout(
@@ -4476,6 +4722,374 @@ const App = (function() {
     }
   }
 
+  // ========== v1.11 文控中心 ==========
+  var DOC_CATEGORIES = [
+    { key: 'contract', label: '合同协议' },
+    { key: 'test', label: '检测报告' },
+    { key: 'acceptance', label: '验收文档' },
+    { key: 'drawing', label: '图纸技术' },
+    { key: 'manual', label: '说明书' },
+    { key: 'other', label: '其他' }
+  ];
+  var DOC_ROLES = [
+    { key: 'all', label: '全员可见' },
+    { key: 'client', label: '客户' },
+    { key: 'pm', label: '项目经理' },
+    { key: 'qc', label: '质量' },
+    { key: 'engineer', label: '交付工程师' }
+  ];
+  var currentDocProjectId = null;
+  function docCatLabel(k) { var f = DOC_CATEGORIES.find(function(c) { return c.key === k; }); return f ? f.label : k; }
+  function docRoleLabel(k) { var f = DOC_ROLES.find(function(r) { return r.key === k; }); return f ? f.label : k; }
+  function fmtSize(b) { if (!b) return '-'; if (b < 1024) return b + ' B'; if (b < 1048576) return (b / 1024).toFixed(1) + ' KB'; return (b / 1048576).toFixed(2) + ' MB'; }
+
+  function openDocCenter(pid) {
+    var p = pid ? (Store.getAllProjects().find(function(x) { return x.id === pid; }) || Store.getSelectedProject()) : Store.getSelectedProject();
+    if (!p) { toast('请先选择项目', 'error'); return; }
+    currentDocProjectId = p.id;
+    var cats = DOC_CATEGORIES.map(function(c) { return '<option value="' + c.key + '">' + c.label + '</option>'; }).join('');
+    var roles = DOC_ROLES.map(function(r) { return '<option value="' + r.key + '">' + r.label + '</option>'; }).join('');
+    var html = ''
+      + '<div class="modal-overlay" id="docCenterModal" onclick="if(event.target===this)App.closeModalById(\'docCenterModal\')">'
+      + '<div class="modal-box doc-center-box" style="max-width:960px;">'
+      + '<div class="modal-header"><span>📁 文控中心 — ' + p.name + '</span>'
+      + '<button class="modal-close" onclick="App.closeModalById(\'docCenterModal\')">×</button></div>'
+      + '<div class="modal-body">'
+      + '<div class="doc-toolbar">'
+      + '<input id="docSearch" class="inline-input" placeholder="🔍 搜索文件名/备注" oninput="App.refreshDocList()" style="flex:1;min-width:140px;">'
+      + '<select id="docCatFilter" class="inline-input" onchange="App.refreshDocList()"><option value="">全部分类</option>' + cats + '</select>'
+      + '<select id="docRoleFilter" class="inline-input" onchange="App.refreshDocList()"><option value="">全部权限</option>' + roles + '</select>'
+      + '<span class="doc-upload-group">'
+      + '<select id="docUploadCat" class="inline-input" title="上传分类">' + cats + '</select>'
+      + '<select id="docUploadRole" class="inline-input" title="上传权限">' + roles + '</select>'
+      + '<input id="docUploadVer" class="inline-input" placeholder="版本v1.0" title="版本" style="width:88px;">'
+      + '<label class="doc-upload-btn">⬆️ 上传文件<input type="file" id="docFileInput" multiple style="display:none;" onchange="App.uploadDoc(this)"></label>'
+      + '</span>'
+      + '</div>'
+      + '<div id="docListWrap" class="doc-list-wrap"></div>'
+      + '</div></div></div>';
+    var existing = document.getElementById('docCenterModal');
+    if (existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend', html);
+    refreshDocList();
+  }
+
+  function refreshDocList() {
+    var wrap = document.getElementById('docListWrap');
+    if (!wrap) return;
+    if (!currentDocProjectId) { wrap.innerHTML = '<div class="empty-tip">请先选择项目</div>'; return; }
+    var docs = Store.getDocuments(currentDocProjectId) || [];
+    var kw = ((document.getElementById('docSearch') || {}).value || '').trim().toLowerCase();
+    var cf = (document.getElementById('docCatFilter') || {}).value || '';
+    var rf = (document.getElementById('docRoleFilter') || {}).value || '';
+    var filtered = docs.filter(function(d) {
+      if (cf && d.category !== cf) return false;
+      if (rf && d.ownerRole !== rf) return false;
+      if (kw && (d.name || '').toLowerCase().indexOf(kw) < 0 && (d.note || '').toLowerCase().indexOf(kw) < 0) return false;
+      return true;
+    });
+    if (!filtered.length) { wrap.innerHTML = '<div class="empty-tip">暂无文档，点击「上传文件」添加（支持多文件 / 分类 / 版本 / 多角色权限）</div>'; return; }
+    var rows = filtered.map(function(d) {
+      var canPreview = /\.(pdf|png|jpe?g|gif|txt|csv|json|html?|md)$/i.test(d.name);
+      var canText = /\.(txt|csv|json|html?|md)$/i.test(d.name);
+      return '<tr>'
+        + '<td><span class="doc-cat-tag cat-' + d.category + '">' + docCatLabel(d.category) + '</span></td>'
+        + '<td class="doc-name" title="' + (d.note || '') + '">' + d.name + (d.note ? ' <span class="doc-note">(' + d.note + ')</span>' : '') + '</td>'
+        + '<td>' + (d.version || 'v1.0') + '</td>'
+        + '<td>' + fmtSize(d.size) + '</td>'
+        + '<td><span class="role-tag role-' + d.ownerRole + '">' + docRoleLabel(d.ownerRole) + '</span></td>'
+        + '<td>' + (d.uploadedAt || '').slice(0, 10) + '</td>'
+        + '<td class="doc-ops">'
+        + (canPreview ? '<button class="op-btn" onclick="App.previewDoc(\'' + d.id + '\')">预览</button>' : '')
+        + '<button class="op-btn" onclick="App.downloadDoc(\'' + d.id + '\')">下载</button>'
+        + '<button class="op-btn danger" onclick="App.delDoc(\'' + d.id + '\')">删除</button>'
+        + '</td></tr>';
+    }).join('');
+    wrap.innerHTML = '<table class="delivery-table doc-table"><thead><tr>'
+      + '<th>分类</th><th>文件名</th><th>版本</th><th>大小</th><th>权限</th><th>上传日期</th><th>操作</th></tr></thead><tbody>' + rows + '</tbody></table>'
+      + '<div class="doc-stat">共 ' + docs.length + ' 份文档，当前筛选显示 ' + filtered.length + ' 份</div>';
+  }
+
+  function uploadDoc(input) {
+    var files = input.files;
+    if (!files || !files.length) return;
+    if (!currentDocProjectId) { toast('请先选择项目', 'error'); return; }
+    var docs = Store.getDocuments(currentDocProjectId) || [];
+    var pending = files.length;
+    var cat = (document.getElementById('docUploadCat') || {}).value || 'other';
+    var role = (document.getElementById('docUploadRole') || {}).value || 'all';
+    var ver = ((document.getElementById('docUploadVer') || {}).value || '').trim() || 'v1.0';
+    Array.prototype.forEach.call(files, function(file) {
+      var id = 'doc_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+      Store.DocDB.putFile(id, file).then(function() {
+        docs.push({
+          id: id, name: file.name, category: cat, version: ver,
+          ownerRole: role, uploadedAt: new Date().toISOString(),
+          uploadedBy: '当前用户', size: file.size, note: ''
+        });
+        pending--;
+        if (pending === 0) {
+          Store.saveDocuments(currentDocProjectId, docs);
+          refreshDocList();
+          if (currentTab === 'cockpit' && currentCockpitTab === 'cockpit-doc') refreshCockpit();
+          toast('已上传 ' + files.length + ' 份文档');
+          input.value = '';
+        }
+      }).catch(function(e) { toast('上传失败: ' + e.message); });
+    });
+  }
+
+  function downloadDoc(docId) {
+    Store.DocDB.getFile(docId).then(function(blob) {
+      if (!blob) { toast('文件实体缺失', 'error'); return; }
+      var docs = Store.getDocuments(currentDocProjectId) || [];
+      var meta = docs.find(function(d) { return d.id === docId; }) || {};
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = url; a.download = meta.name || 'download'; a.click();
+      setTimeout(function() { URL.revokeObjectURL(url); }, 4000);
+    });
+  }
+
+  function previewDoc(docId) {
+    Store.DocDB.getFile(docId).then(function(blob) {
+      if (!blob) { toast('文件实体缺失，无法预览', 'error'); return; }
+      var url = URL.createObjectURL(blob);
+      var docs = Store.getDocuments(currentDocProjectId) || [];
+      var meta = docs.find(function(d) { return d.id === docId; }) || {};
+      var name = meta.name || '预览';
+      var ext = (name.split('.').pop() || '').toLowerCase();
+      var viewer = document.getElementById('docPreviewModal'); if (viewer) viewer.remove();
+      var content;
+      if (ext === 'pdf') content = '<iframe src="' + url + '" style="width:100%;height:78vh;border:0;"></iframe>';
+      else if (/^(png|jpe?g|gif)$/i.test(ext)) content = '<img src="' + url + '" style="max-width:100%;max-height:78vh;display:block;margin:0 auto;">';
+      else if (/^(txt|csv|json|html?|md)$/i.test(ext)) {
+        var reader = new FileReader();
+        reader.onload = function() { showDocText(reader.result, name); };
+        reader.readAsText(blob);
+        return;
+      } else content = '<div class="empty-tip">该格式(' + ext + ')不支持在线预览，请<a href="' + url + '" download="' + name + '">下载</a>查看。</div>';
+      var html = '<div class="modal-overlay" id="docPreviewModal" onclick="if(event.target===this)App.closeModalById(\'docPreviewModal\')">'
+        + '<div class="modal-box" style="max-width:1000px;"><div class="modal-header"><span>👁 预览 — ' + name + '</span><button class="modal-close" onclick="App.closeModalById(\'docPreviewModal\')">×</button></div>'
+        + '<div class="modal-body">' + content + '</div></div></div>';
+      document.body.insertAdjacentHTML('beforeend', html);
+    });
+  }
+  function showDocText(text, name) {
+    var viewer = document.getElementById('docPreviewModal'); if (viewer) viewer.remove();
+    var esc = (text || '').replace(/[<>&]/g, function(c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]; });
+    var html = '<div class="modal-overlay" id="docPreviewModal" onclick="if(event.target===this)App.closeModalById(\'docPreviewModal\')">'
+      + '<div class="modal-box" style="max-width:1000px;"><div class="modal-header"><span>👁 预览 — ' + name + '</span><button class="modal-close" onclick="App.closeModalById(\'docPreviewModal\')">×</button></div>'
+      + '<div class="modal-body"><pre class="doc-text-preview">' + esc + '</pre></div></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  function delDoc(docId) {
+    if (!confirm('确认删除该文档？此操作不可恢复。')) return;
+    if (!currentDocProjectId) return;
+    var docs = Store.getDocuments(currentDocProjectId) || [];
+    var meta = docs.find(function(d) { return d.id === docId; });
+    docs = docs.filter(function(d) { return d.id !== docId; });
+    Store.saveDocuments(currentDocProjectId, docs);
+    Store.DocDB.deleteFile(docId);
+    refreshDocList();
+    if (currentTab === 'cockpit' && currentCockpitTab === 'cockpit-doc') refreshCockpit();
+    toast('已删除：' + (meta ? meta.name : docId));
+  }
+
+  // ========== v1.11 项目管理驾驶舱 ==========
+  var currentCockpitTab = 'cockpit-overview';
+  var COCKPIT_PHASE_NAMES = { 1: '新品研发', 2: '商务拓展', 3: '生产制造', 4: '物流运输', 5: '现场安装', 6: '系统调试', 7: '交付移交', 8: '售后服务', 9: '运维管理' };
+  var COCKPIT_PHASES = [
+    { k: '1_rnd', n: '研发' }, { k: '2_bd', n: '商务' }, { k: '3_mfg', n: '制造' },
+    { k: '4_logistics', n: '物流' }, { k: '5_install', n: '安装' }, { k: '6_commission', n: '调试' },
+    { k: '7_handover', n: '移交' }, { k: '8_aftersales', n: '售后' }, { k: '9_ops', n: '运维' }
+  ];
+  function projOverall(p) {
+    if (!p || !p.phases) return 0;
+    var ks = Object.keys(p.phases);
+    if (!ks.length) return 0;
+    var s = 0; ks.forEach(function(k) { s += (p.phases[k].completed || 0); });
+    return Math.round(s / ks.length);
+  }
+  function parseMWh(cap) {
+    if (!cap) return 0;
+    var m = cap.match(/(\d+(?:\.\d+)?)\s*MWh/i);
+    return m ? parseFloat(m[1]) : 0;
+  }
+  function cockpitKpi(title, val, sub, tone) {
+    var toneCls = tone === 'good' ? 'kpi-good' : tone === 'warn' ? 'kpi-warn' : tone === 'bad' ? 'kpi-bad' : 'kpi-neutral';
+    return '<div class="cockpit-kpi-card ' + toneCls + '"><div class="ck-title">' + title + '</div><div class="ck-val">' + val + '</div><div class="ck-sub">' + sub + '</div></div>';
+  }
+
+  function renderCockpitTab() {
+    var projects = Store.getAllProjects() || [];
+    var tabs = [
+      { key: 'cockpit-overview', label: '📌 组合总览' },
+      { key: 'cockpit-analytics', label: '📈 交付分析' },
+      { key: 'cockpit-quality', label: '🔍 质量洞察' },
+      { key: 'cockpit-doc', label: '📁 文控中心' }
+    ];
+    var btns = tabs.map(function(t) {
+      return '<button class="sub-tab-btn' + (currentCockpitTab === t.key ? ' active' : '') + '" data-ctab="' + t.key + '" onclick="App.switchCockpitTab(\'' + t.key + '\')">' + t.label + '</button>';
+    }).join('');
+    return '<div class="cockpit-wrap">'
+      + '<div class="cockpit-head">'
+      + '<div class="cockpit-title">📊 项目管理驾驶舱 <span class="badge badge-info">组合视图 · ' + projects.length + ' 个项目</span></div>'
+      + '<div class="cockpit-subtabs">' + btns + '</div>'
+      + '</div>'
+      + '<div id="cockpitPanel" class="cockpit-panel"></div>'
+      + '</div>';
+  }
+
+  function initCockpit() { refreshCockpit(); }
+
+  function switchCockpitTab(key) {
+    currentCockpitTab = key;
+    var head = document.querySelector('.cockpit-subtabs');
+    if (head) head.querySelectorAll('.sub-tab-btn').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-ctab') === key); });
+    refreshCockpit();
+  }
+
+  function refreshCockpit() {
+    var panel = document.getElementById('cockpitPanel');
+    if (!panel) return;
+    var projects = Store.getAllProjects() || [];
+    if (currentCockpitTab === 'cockpit-overview') panel.innerHTML = renderCockpitOverview(projects);
+    else if (currentCockpitTab === 'cockpit-analytics') panel.innerHTML = renderCockpitAnalytics(projects);
+    else if (currentCockpitTab === 'cockpit-quality') panel.innerHTML = renderCockpitQuality(projects);
+    else if (currentCockpitTab === 'cockpit-doc') panel.innerHTML = renderCockpitDoc(projects);
+    setTimeout(function() { drawCockpitCharts(currentCockpitTab); }, 30);
+  }
+
+  function drawCockpitCharts(tab) {
+    if (!window.ProgressChart) return;
+    if (tab === 'cockpit-overview') {
+      ProgressChart.render('ckProgressChart', ProgressChart.getCockpitProgress(Store.getAllProjects()));
+    } else if (tab === 'cockpit-analytics') {
+      ProgressChart.render('ckPhaseChart', ProgressChart.getCockpitPhase(Store.getAllProjects()));
+      ProgressChart.render('ckCargoChart', ProgressChart.getCockpitCargo(Store.getAllProjects()));
+      ProgressChart.render('ckPassChart', ProgressChart.getCockpitPass(Store.getAllProjects()));
+    } else if (tab === 'cockpit-quality') {
+      ProgressChart.render('ckDefectChart', ProgressChart.getCockpitDefect(getCockpitDefectMap(Store.getAllProjects())));
+      ProgressChart.render('ckQPassChart', ProgressChart.getCockpitPass(Store.getAllProjects()));
+    }
+  }
+
+  function getCockpitDefectMap(projects) {
+    var map = {};
+    (projects || []).forEach(function(p) {
+      var q = Store.getQualityData(p.id) || {};
+      (q.records || []).forEach(function(r) { if (r.item) map[r.item] = (map[r.item] || 0) + 1; });
+    });
+    return map;
+  }
+
+  function renderCockpitOverview(projects) {
+    var total = projects.length;
+    var delivered = projects.filter(function(p) { return p.status === '已交付'; }).length;
+    var inProg = projects.filter(function(p) { return p.status === '交付中'; }).length;
+    var planned = projects.filter(function(p) { return p.status === '计划交付'; }).length;
+    var totalMWh = projects.reduce(function(s, p) { return s + parseMWh(p.capacity); }, 0);
+    var avgProg = total ? Math.round(projects.reduce(function(s, p) { return s + projOverall(p); }, 0) / total) : 0;
+    var kpis = '<div class="cockpit-kpi-row">'
+      + cockpitKpi('项目总数', total + ' 个', delivered + '交付 / ' + inProg + '在施 / ' + planned + '计划', 'neutral')
+      + cockpitKpi('总装机规模', totalMWh + ' MWh', '储能容量合计', 'info')
+      + cockpitKpi('平均交付进度', avgProg + '%', '跨项目均值', avgProg >= 80 ? 'good' : avgProg >= 40 ? 'warn' : 'bad')
+      + cockpitKpi('在交付项目', inProg + ' 个', '需重点跟进', inProg ? 'warn' : 'good')
+      + '</div>';
+    var cards = projects.map(function(p) {
+      var ov = projOverall(p);
+      var stCls = p.status === '已交付' ? 'badge-good' : p.status === '交付中' ? 'badge-warn' : 'badge-info';
+      var phaseName = COCKPIT_PHASE_NAMES[p.currentPhase] || ('阶段' + p.currentPhase);
+      return '<div class="portfolio-card">'
+        + '<div class="pc-head"><span class="pc-name" title="' + p.name + '">' + p.name + '</span><span class="badge ' + stCls + '">' + p.status + '</span></div>'
+        + '<div class="pc-meta">' + p.location + ' · ' + p.capacity + '</div>'
+        + '<div class="pc-bar"><div class="pc-bar-fill" style="width:' + ov + '%;background:' + (ov >= 100 ? '#16a34a' : ov >= 50 ? '#2563eb' : '#f59e0b') + ';"></div></div>'
+        + '<div class="pc-foot"><span>总进度 ' + ov + '%</span><span>当前：' + phaseName + '</span></div>'
+        + '</div>';
+    }).join('');
+    return kpis
+      + '<div class="cockpit-section-title">📈 各项目交付总进度</div>'
+      + '<div class="cockpit-chart-box"><canvas id="ckProgressChart"></canvas></div>'
+      + '<div class="cockpit-section-title">🗂 项目组合卡片</div>'
+      + '<div class="portfolio-grid">' + cards + '</div>';
+  }
+
+  function renderCockpitAnalytics(projects) {
+    var active = projects.filter(function(p) { return p.status !== '已交付'; });
+    var avgByPhase = COCKPIT_PHASES.map(function(pd) {
+      var sum = 0, c = 0;
+      active.forEach(function(p) { if (p.phases && p.phases[pd.k]) { sum += (p.phases[pd.k].completed || 0); c++; } });
+      return { name: pd.n, val: c ? Math.round(sum / c) : 0 };
+    });
+    var minPhase = avgByPhase.slice().sort(function(a, b) { return a.val - b.val; })[0];
+    var allShip = []; projects.forEach(function(p) { var lg = Store.getLogistics(p.id) || {}; (lg.shipments || []).forEach(function(s) { allShip.push(s); }); });
+    var cargoRate = allShip.length ? Math.round(allShip.reduce(function(s, x) { return s + (parseFloat(x.damageRate) || 0); }, 0) / allShip.length) : 0;
+    var allRecs = []; projects.forEach(function(p) { var q = Store.getQualityData(p.id) || {}; (q.records || []).forEach(function(r) { allRecs.push(r); }); });
+    var closed = allRecs.filter(function(r) { return r.status === 'closed' || r.status === 'verified'; }).length;
+    var passRate = allRecs.length ? Math.round(closed / allRecs.length * 100) : 0;
+    var avgProg = projects.length ? Math.round(projects.reduce(function(s, p) { return s + projOverall(p); }, 0) / projects.length) : 0;
+    var kpis = '<div class="cockpit-kpi-row">'
+      + cockpitKpi('平均交付进度', avgProg + '%', '跨项目', avgProg >= 80 ? 'good' : avgProg >= 40 ? 'warn' : 'bad')
+      + cockpitKpi('货损率', cargoRate + '%', allShip.length ? allShip.length + ' 批次' : '(无物流数据)', cargoRate === 0 ? 'good' : cargoRate <= 5 ? 'warn' : 'bad')
+      + cockpitKpi('验收通过率', passRate + '%', allRecs.length ? allRecs.length + ' 条记录' : '(无质量数据)', passRate >= 90 ? 'good' : passRate >= 70 ? 'warn' : 'bad')
+      + cockpitKpi('瓶颈阶段', minPhase ? minPhase.name : '—', minPhase ? ('均完成 ' + minPhase.val + '%') : '—', 'warn')
+      + '</div>';
+    var bnRows = active.map(function(p) {
+      var minP = COCKPIT_PHASES.map(function(pd) { return { name: pd.n, val: (p.phases && p.phases[pd.k]) ? (p.phases[pd.k].completed || 0) : 0 }; })
+        .sort(function(a, b) { return a.val - b.val; })[0];
+      return '<tr><td>' + p.name + '</td><td><span class="badge badge-warn">' + minP.name + '</span></td><td>' + minP.val + '%</td><td>' + (p.location || '') + '</td></tr>';
+    }).join('');
+    var bnHTML = '<div class="card"><div class="card-header">🚧 瓶颈环节识别（在交付项目当前最滞后阶段）</div><div class="card-body scrollable" style="max-height:220px;overflow:auto;">'
+      + (bnRows ? '<table class="delivery-table"><thead><tr><th>项目</th><th>最滞后阶段</th><th>完成度</th><th>区域</th></tr></thead><tbody>' + bnRows + '</tbody></table>'
+        : '<div class="empty-tip">无在交付项目</div>') + '</div></div>';
+    return kpis
+      + '<div class="cockpit-section-title">🚧 各阶段平均完成度（瓶颈定位）</div>'
+      + '<div class="cockpit-chart-box"><canvas id="ckPhaseChart"></canvas></div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;">'
+      + '<div class="cockpit-chart-box"><canvas id="ckCargoChart"></canvas></div>'
+      + '<div class="cockpit-chart-box"><canvas id="ckPassChart"></canvas></div>'
+      + '</div>'
+      + bnHTML;
+  }
+
+  function renderCockpitQuality(projects) {
+    var qrows = projects.map(function(p) {
+      var q = Store.getQualityData(p.id) || {}; var recs = (q.records || []);
+      var closed = recs.filter(function(r) { return r.status === 'closed' || r.status === 'verified'; }).length;
+      var openCnt = recs.length - closed;
+      var pass = recs.length ? Math.round(closed / recs.length * 100) : 0;
+      return '<tr><td>' + p.name + '</td><td>' + recs.length + '</td><td>' + closed + '</td>'
+        + '<td><span class="badge ' + (pass >= 90 ? 'badge-good' : pass >= 70 ? 'badge-warn' : 'badge-info') + '">' + pass + '%</span></td>'
+        + '<td>' + (openCnt ? '<span class="badge badge-warn">' + openCnt + '</span>' : '<span class="badge badge-good">0</span>') + '</td></tr>';
+    }).join('');
+    var table = '<div class="card"><div class="card-header">🧪 各项目质量闭环概览</div><div class="card-body scrollable" style="max-height:220px;overflow:auto;">'
+      + '<table class="delivery-table"><thead><tr><th>项目</th><th>记录数</th><th>已闭环</th><th>通过率</th><th>未关闭</th></tr></thead><tbody>' + qrows + '</tbody></table></div></div>';
+    return table
+      + '<div class="cockpit-section-title">📊 跨项目质量缺陷 Pareto（高频问题点）</div>'
+      + '<div class="cockpit-chart-box"><canvas id="ckDefectChart"></canvas></div>'
+      + '<div class="cockpit-section-title">✅ 各项目验收通过率</div>'
+      + '<div class="cockpit-chart-box"><canvas id="ckQPassChart"></canvas></div>';
+  }
+
+  function renderCockpitDoc(projects) {
+    var rows = projects.map(function(p) {
+      var docs = Store.getDocuments(p.id) || [];
+      var totalSize = docs.reduce(function(s, d) { return s + (d.size || 0); }, 0);
+      return '<tr><td>' + p.name + '</td><td><span class="badge badge-info">' + docs.length + '</span></td><td>' + fmtSize(totalSize) + '</td>'
+        + '<td><button class="op-btn" onclick="App.openDocFromCockpit(\'' + p.id + '\')">打开文控</button></td></tr>';
+    }).join('');
+    var totalDocs = projects.reduce(function(s, p) { return s + (Store.getDocuments(p.id) || []).length; }, 0);
+    var kpi = '<div class="cockpit-kpi-row">' + cockpitKpi('文档总数', totalDocs + ' 份', '跨项目文控库', 'info') + '</div>';
+    return kpi
+      + '<div class="card"><div class="card-header">📁 各项目文档分布（点击「打开文控」进入分类 / 版本 / 检索 / 权限管理）</div>'
+      + '<div class="card-body"><table class="delivery-table"><thead><tr><th>项目</th><th>文档数</th><th>总大小</th><th>操作</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+  }
+
+  function openDocFromCockpit(pid) { openDocCenter(pid); }
+
+  function closeModalById(id) { var el = document.getElementById(id); if (el) el.remove(); }
+
   // ========= 暴露API =========
   return {
     init,selectProject,switchTab,toggleFoldable,
@@ -4501,6 +5115,14 @@ const App = (function() {
     updateProjectParams,renderDeliveryOverview,
     showTrainingModule,addTrainingPlan,delTrainingPlan,uploadMaterial,addMaterialMeta,downloadMaterial,delMaterial,startExam,submitExam,shareExam,copyText,copyShare,importResult,queryScore,submitTrainingFeedback,
     drawMfgChart,drawInstallChart,drawSATChart,drawLogisticsChart,
+    // ===== v1.11 质量管控 =====
+    onQCChange,saveQualityRecord,delQualityRecord,
+    // ===== v1.11 物流追踪 =====
+    addShipment,delShipment,updateShipmentField,refreshLogisticsRiskCard,
+    // ===== v1.11 文控中心 =====
+    openDocCenter,uploadDoc,downloadDoc,delDoc,previewDoc,refreshDocList,closeModalById,
+    // ===== v1.11 项目管理驾驶舱 =====
+    initCockpit,switchCockpitTab,refreshCockpit,openDocFromCockpit,
     toast
   };
 })();

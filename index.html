@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ESS交付管理系统 v1.10.3 | ArcBank1.0 储能系统全生命周期交付管控</title>
+<title>ESS交付管理系统 v1.11.0 | ArcBank1.0 储能系统全生命周期交付管控</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -18,6 +18,7 @@
     <div class="proj-params" id="projParams"></div>
   </div>
   <div class="header-actions">
+    <button onclick="App.openDocCenter()" title="文档管理中心（合同/测试报告/验收单/版本控制/检索）">📁 文控</button>
     <button onclick="App.showImportCSVModal()" title="导入CSV格式项目列表">📥 导入项目</button>
     <button onclick="App.showAddProjectModal()">+ 新增项目</button>
   </div>
@@ -51,7 +52,7 @@
 </div>
 
 <!-- ==================== 版权 ==================== -->
-<div class="footer-bar">© 2026 ESS交付管理系统 v1.10.3 | ArcBank1.0 储能系统全生命周期交付管控平台 | 江苏中信博新能源科技股份有限公司 | 开发者：郑丹 <span style="margin-left:8px;">|</span> <a id="contactLink" href="#" onclick="App.openContactEmail();return false;" style="color:#3b82f6;text-decoration:none;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:color 0.2s;" onmouseover="this.style.color='#2563eb';this.style.textDecoration='underline';" onmouseout="this.style.color='#3b82f6';this.style.textDecoration='none';">📧 与我联系</a></div>
+<div class="footer-bar">© 2026 ESS交付管理系统 v1.11.0 | ArcBank1.0 储能系统全生命周期交付管控平台 | 江苏中信博新能源科技股份有限公司 | 开发者：郑丹 <span style="margin-left:8px;">|</span> <a id="contactLink" href="#" onclick="App.openContactEmail();return false;" style="color:#3b82f6;text-decoration:none;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:color 0.2s;" onmouseover="this.style.color='#2563eb';this.style.textDecoration='underline';" onmouseout="this.style.color='#3b82f6';this.style.textDecoration='none';">📧 与我联系</a></div>
 
 <!-- 弹窗容器 -->
 <div id="modalContainer"></div>
@@ -63,13 +64,13 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <!-- 业务脚本（添加版本号清除缓存） -->
-<script src="js/store.js?v=1.10.3"></script>
-<script src="js/chart.js?v=1.10.3"></script>
-<script src="js/app.js?v=1.10.3"></script>
+<script src="js/store.js?v=1.11.0"></script>
+<script src="js/chart.js?v=1.11.0"></script>
+<script src="js/app.js?v=1.11.0"></script>
 
 <script>
 // 调试指示器 - 帮助定位白屏问题
-console.log('=== ESS交付管理系统 v1.10.3 调试信息 ===');
+console.log('=== ESS交付管理系统 v1.11.0 调试信息 ===');
 console.log('页面开始加载:', new Date().toLocaleTimeString());
 
 // 检查脚本加载状态

@@ -258,11 +258,109 @@ var ProgressChart = (function() {
     };
   }
 
+  // ============ v1.11 驾驶舱图表 ============
+  function shortName(name) {
+    name = name || '';
+    if (name.length <= 9) return name;
+    return name.slice(0, 8) + '…';
+  }
+  function projOverall(p) {
+    if (!p || !p.phases) return 0;
+    var ks = Object.keys(p.phases);
+    if (!ks.length) return 0;
+    var s = 0; ks.forEach(function(k) { s += (p.phases[k].completed || 0); });
+    return Math.round(s / ks.length);
+  }
+
+  // 各项目交付总进度
+  function getCockpitProgress(projects) {
+    projects = projects || [];
+    var actual = projects.map(function(p) { return { label: shortName(p.name), value: projOverall(p) }; });
+    var planned = projects.map(function(p) { return { label: shortName(p.name), value: 100 }; });
+    return { title: '各项目交付总进度（计划100%基线）', planned: planned, actual: actual, unit: '%', warnings: [] };
+  }
+
+  // 货损率（按批次，使用 damageRate 百分比）
+  function getCockpitCargo(projects) {
+    var labels = [], vals = [];
+    (projects || []).forEach(function(p) {
+      var lg = (typeof Store !== 'undefined' && Store.getLogistics) ? Store.getLogistics(p.id) : ({ shipments: [] });
+      var sh = (lg && lg.shipments) || [];
+      var rate = sh.length ? Math.round(sh.reduce(function(s, x) { return s + (parseFloat(x.damageRate) || 0); }, 0) / sh.length) : 0;
+      labels.push(shortName(p.name)); vals.push(rate);
+    });
+    return {
+      title: '货损率（按批次均值 · 仅含已录入物流数据项目）',
+      planned: labels.map(function(l) { return { label: l, value: 0 }; }),
+      actual: labels.map(function(l, i) { return { label: l, value: vals[i] }; }),
+      unit: '%', warnings: []
+    };
+  }
+
+  // 在交付项目各阶段平均完成度（瓶颈识别）
+  var COCKPIT_PHASES = [
+    { k: '1_rnd', n: '研发' }, { k: '2_bd', n: '商务' }, { k: '3_mfg', n: '制造' },
+    { k: '4_logistics', n: '物流' }, { k: '5_install', n: '安装' }, { k: '6_commission', n: '调试' },
+    { k: '7_handover', n: '移交' }, { k: '8_aftersales', n: '售后' }, { k: '9_ops', n: '运维' }
+  ];
+  function getCockpitPhase(projects) {
+    var active = (projects || []).filter(function(p) { return p.status !== '已交付'; });
+    var labels = [], vals = [];
+    COCKPIT_PHASES.forEach(function(pd) {
+      var sum = 0, c = 0;
+      active.forEach(function(p) { if (p.phases && p.phases[pd.k]) { sum += (p.phases[pd.k].completed || 0); c++; } });
+      labels.push(pd.n); vals.push(c ? Math.round(sum / c) : 0);
+    });
+    return {
+      title: '在交付项目 · 各阶段平均完成度（瓶颈识别）',
+      planned: labels.map(function(l) { return { label: l, value: 100 }; }),
+      actual: labels.map(function(l, i) { return { label: l, value: vals[i] }; }),
+      unit: '%', warnings: []
+    };
+  }
+
+  // 质量缺陷 Pareto（高频问题点）
+  function getCockpitDefect(defectMap) {
+    var entries = Object.keys(defectMap || {}).map(function(k) { return { k: k, v: defectMap[k] }; })
+      .sort(function(a, b) { return b.v - a.v; });
+    var labels = entries.map(function(e) { return e.k; });
+    var vals = entries.map(function(e) { return e.v; });
+    return {
+      title: '质量缺陷 Pareto（高频问题点 TOP）',
+      planned: labels.map(function(l) { return { label: l, value: 0 }; }),
+      actual: labels.map(function(l, i) { return { label: l, value: vals[i] }; }),
+      unit: '次', warnings: []
+    };
+  }
+
+  // 验收通过率（按项目，从质量记录闭环率计算）
+  function getCockpitPass(projects) {
+    var labels = [], vals = [];
+    (projects || []).forEach(function(p) {
+      var q = (typeof Store !== 'undefined' && Store.getQualityData) ? Store.getQualityData(p.id) : null;
+      var recs = (q && q.records) || [];
+      var closed = recs.filter(function(r) { return r.status === 'closed' || r.status === 'verified'; }).length;
+      var rate = recs.length ? Math.round(closed / recs.length * 100) : null;
+      labels.push(shortName(p.name)); vals.push(rate);
+    });
+    return {
+      title: '验收通过率（质量记录闭环率 · 无数据项目显示0）',
+      planned: labels.map(function(l) { return { label: l, value: 100 }; }),
+      actual: labels.map(function(l, i) { return { label: l, value: (vals[i] == null ? 0 : vals[i]) }; }),
+      unit: '%', warnings: []
+    };
+  }
+
   return {
     render: render,
     getMfgData: getMfgData,
     getInstallData: getInstallData,
     getSATData: getSATData,
-    getLogisticsData: getLogisticsData
+    getLogisticsData: getLogisticsData,
+    getCockpitProgress: getCockpitProgress,
+    getCockpitCargo: getCockpitCargo,
+    getCockpitPhase: getCockpitPhase,
+    getCockpitDefect: getCockpitDefect,
+    getCockpitPass: getCockpitPass
   };
 })();
