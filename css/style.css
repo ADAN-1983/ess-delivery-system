@@ -1151,6 +1151,9 @@ body {
 .tr-exam-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; }
 .tr-exam-head { font-size: 13px; color: var(--c-primary); font-weight: 600; margin-bottom: 8px; }
 .tr-exam-trainee { margin-bottom: 10px; }
+.tr-exam-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+.tr-exam-rules { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 16px; margin: 10px 0; font-size: 13px; color: #334155; }
+.tr-exam-rules li { margin: 3px 0; }
 .tr-q { border-bottom: 1px dashed #e2e8f0; padding: 10px 0; }
 .tr-q-title { font-size: 13px; color: #1e293b; margin-bottom: 6px; }
 .tr-q-type { color: #d97706; font-size: 11px; }
@@ -1160,6 +1163,17 @@ body {
 .tr-exam-result h4 { color: var(--c-primary); }
 .tr-pass { color: #16a34a; font-weight: 700; }
 .tr-fail { color: #dc2626; font-weight: 700; }
+
+/* 分享 */
+.tr-share { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+.tr-share-qr { text-align: center; margin-bottom: 12px; }
+.tr-share-qr img { max-width: 220px; border: 1px solid #e2e8f0; border-radius: 8px; }
+.tr-share-link { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.tr-share-link input { flex: 1; }
+.tr-share-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.tr-import-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
+.tr-import-box input { flex: 1; min-width: 220px; }
+.tr-hint-inline { color: #94a3b8; font-size: 12px; }
 
 /* 统计 */
 .tr-stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
