@@ -1720,7 +1720,7 @@ const App = (function() {
     var riskHTML = '<div class="card card-foldable open" id="commissionRiskCard"><div class="card-header" onclick="App.toggleCardFold(this)">⚠ 风险提示与对策</div><div class="card-foldable-content open"><div style="color:var(--c-gray-400);font-size:12px;padding:8px;">切换子标签查看对应风险</div></div></div>';
     var efficiencyHTML = '<div class="card card-foldable open" id="commissionEfficiencyCard"><div class="card-header" onclick="App.toggleCardFold(this)">📈 资源与效率</div><div class="card-foldable-content open"><div style="color:var(--c-gray-400);font-size:12px;padding:8px;">切换子标签查看对应效率指标</div></div></div>';
 
-    // Tab6底部卡片（自定义布局：左栏=见证+7M1E，右栏=进度图，右栏宽度与上方风险卡片对齐）
+    // Tab6底部三卡片并排（见证管理 | 7M1E管控 | 进度对比图）
     return `
       <div class="sub-tab-nav commission-sub-tabs" id="commissionSubTabs">
         ${subTabs.map(st => `<button class="sub-tab-btn${st.id==='sat-1'?' active':''}" data-tab-group="commission" data-subtab="${st.id}">${st.name}</button>`).join('')}
@@ -1730,19 +1730,15 @@ const App = (function() {
         <div id="commissionSubContentArea" style="flex:1;min-width:0;">${subTabContents}</div>
         <div style="flex:0 0 280px;">${riskHTML}${efficiencyHTML}</div>
       </div>
-      <div style="display:flex;gap:16px;margin-top:12px;">
-        <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;">
-          ${witnessCheckHTML}
-          ${buildM5ECard(sop.sevenM1E,'系统调试7M1E管控',true)}
-        </div>
-        <div style="flex:0 0 280px;">
-          <div class="card card-foldable">
-            <div class="card-header" onclick="App.toggleCardFold(this)">📊 系统调试 · 计划 vs 实际进度对比图</div>
-            <div class="card-foldable-content" style="padding:10px;">
-            <canvas id="satChart"></canvas>
-            <div id="satChartAdvice" style="margin-top:8px;font-size:12px;color:#475569;line-height:1.6;"></div>
-          </div>
-        </div>
+      <div class="tab-grid-3 mt-2">
+        ${witnessCheckHTML}
+        ${buildM5ECard(sop.sevenM1E,'系统调试7M1E管控',true)}
+        <div class="card card-foldable">
+          <div class="card-header" onclick="App.toggleCardFold(this)">📊 系统调试 · 计划 vs 实际进度对比图</div>
+          <div class="card-foldable-content" style="padding:10px;">
+          <canvas id="satChart"></canvas>
+          <div id="satChartAdvice" style="margin-top:8px;font-size:12px;color:#475569;line-height:1.6;"></div>
+        </div></div>
       </div>
     `;
   }
