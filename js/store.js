@@ -1299,8 +1299,8 @@ const Store = (function() {
           {"item":"售后培训材料移交", "owner":"服务部", "deadline":"量产前", "status":"pending"}
         ]
       },
-      // ===== RD Phase 8: 售后反馈闭环 =====
-      {"id":"rd-8","sortOrder":8,"name":"1.8 售后反馈闭环","standardHours":"持续进行","canParallel":true,"witness":"客服总监/质量总监",
+      // ===== RD Phase 8: 问题闭环 =====
+      {"id":"rd-8","sortOrder":8,"name":"1.8 问题闭环","standardHours":"持续进行","canParallel":true,"witness":"客服总监/质量总监",
         "checks":[
           {"id":"rd-8-1","item":"历史项目问题清单梳理","content":"收集过去12个月所有现场问题(客诉/8D/退货)，分类统计TOP问题","standard":"覆盖100%已交付项目","type":"关键","tool":"CRM/售后管理系统","refStd":"GB/T 19001-2018","record":"历史问题统计分析报告"},
           {"id":"rd-8-2","item":"根因分析(RCA)与改进措施","content":"对TOP5问题用5Why/鱼骨图/FTA进行根因分析，制定纠正预防措施(CAPA)","standard":"CAPA有效率≥90%(6个月内不复发)","type":"关键","tool":"8D报告/5Why/鱼骨图","refStd":"IATF 16949:2016 / 8D方法","record":"根因分析报告+CAPA跟踪表"},
@@ -3258,13 +3258,14 @@ const Store = (function() {
         const parsed = JSON.parse(saved);
         if (parsed && parsed._version === STORAGE_VERSION && parsed.projects && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
           console.log('Store: 从LocalStorage恢复 v' + STORAGE_VERSION, parsed.projects.length, '个项目');
-          // ★ SOP结构迁移检查（即使版本匹配也要确保phases字段存在）
+          // ★ SOP结构迁移检查（即使版本匹配也要确保phases字段存在且名称同步）
           if (!parsed.installSOP || !parsed.installSOP.phases) parsed.installSOP = EMBEDDED_INSTALL_SOP;
-          if (!parsed.satSOP || !parsed.satSOP.phases || parsed.satSOP.phases.length !== EMBEDDED_SAT_SOP.phases.length) parsed.satSOP = EMBEDDED_SAT_SOP;
+          if (!parsed.satSOP || !parsed.satSOP.phases || parsed.satSOP.phases.length !== EMBEDDED_SAT_SOP.phases.length || (parsed.satSOP.phases[0] && parsed.satSOP.phases[0].name !== EMBEDDED_SAT_SOP.phases[0].name)) parsed.satSOP = EMBEDDED_SAT_SOP;
           if (!parsed.fatSOP || !parsed.fatSOP.phases || !parsed.fatSOP.phases.length) parsed.fatSOP = EMBEDDED_FAT_SOP;
-          // ★ RD SOP 迁移：阶段数不匹配时用内联数据重建（保留已有勾选状态）
+          // ★ RD SOP 迁移：阶段数不匹配或名称不同时用内联数据重建（保留已有勾选状态）
           var _embRdPhases = EMBEDDED_RD_SOP.phases || [];
-          if (!parsed.rdSOP || !parsed.rdSOP.phases || !parsed.rdSOP.phases.length || parsed.rdSOP.phases.length !== _embRdPhases.length) {
+          var _rdNameMismatch = parsed.rdSOP && parsed.rdSOP.phases && parsed.rdSOP.phases[7] && parsed.rdSOP.phases[7].name !== _embRdPhases[7].name;
+          if (!parsed.rdSOP || !parsed.rdSOP.phases || !parsed.rdSOP.phases.length || parsed.rdSOP.phases.length !== _embRdPhases.length || _rdNameMismatch) {
             var _oldCheckStates = {};
             if (parsed.rdSOP && parsed.rdSOP.phases) {
               parsed.rdSOP.phases.forEach(function(op){ (op.checks||[]).forEach(function(oc){ _oldCheckStates[oc.id] = !!oc.done; }); });
@@ -3520,9 +3521,9 @@ const Store = (function() {
       if (!_state.selectedProjectId || !_state.projects.find(function(p) { return p.id === _state.selectedProjectId; })) {
         _state.selectedProjectId = _state.projects[0] ? _state.projects[0].id : DEFAULT_PROJECT_ID;
       }
-      // 确保SOP数据存在
+      // 确保SOP数据存在且名称与内联版本一致
       if (!_state.installSOP || !_state.installSOP.phases) _state.installSOP = EMBEDDED_INSTALL_SOP;
-      if (!_state.satSOP || !_state.satSOP.phases) _state.satSOP = EMBEDDED_SAT_SOP;
+      if (!_state.satSOP || !_state.satSOP.phases || (_state.satSOP.phases[0] && _state.satSOP.phases[0].name !== EMBEDDED_SAT_SOP.phases[0].name)) _state.satSOP = EMBEDDED_SAT_SOP;
       if (!_state.fatSOP || !_state.fatSOP.phases || !_state.fatSOP.phases.length) _state.fatSOP = EMBEDDED_FAT_SOP;
       persist();
       notify('projectChanged', { project: getSelectedProject() });
