@@ -2110,10 +2110,21 @@ const App = (function() {
         if(!title){App.toast('请填写计划名称','warn');return;}
         var t2=Store.getTraining();
         var courses=Array.from(document.getElementById('plCourses').selectedOptions).map(function(o){return o.value;});
+        var newPlanId='pl_'+Date.now();
+        var planStatus=document.getElementById('plStatus').value||'planned';
         var plans=t2.plans.slice();
-        plans.push({id:'pl_'+Date.now(), title:title, date:document.getElementById('plDate').value||'-', location:document.getElementById('plLoc').value||'-', trainer:document.getElementById('plTrainer').value||'-', audience:document.getElementById('plAud').value||'-', courseIds:courses, status:document.getElementById('plStatus').value});
+        plans.push({id:newPlanId, title:title, date:document.getElementById('plDate').value||'-', location:document.getElementById('plLoc').value||'-', trainer:document.getElementById('plTrainer').value||'-', audience:document.getElementById('plAud').value||'-', courseIds:courses, status:planStatus});
         Store.updateTraining('plans', plans);
-        App.closeModal(); App.showTrainingModule('plan'); App.toast('培训计划已保存','success');
+        // 自动在培训进度页创建对应初始条目（按受众拆分人员）
+        var audienceRaw=document.getElementById('plAud').value.trim()||'待分配';
+        var progressList=t2.progress||[];
+        var trainees=audienceRaw.split(/[,，、\s]+/).filter(function(s){return s;});
+        if(!trainees.length) trainees=[audienceRaw];
+        trainees.forEach(function(tr){
+          progressList.push({id:'pr_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), planId:newPlanId, trainee:tr, rate:0, status:planStatus, completedCourses:[], notes:''});
+        });
+        Store.updateTraining('progress', progressList);
+        App.closeModal(); App.showTrainingModule('plan'); App.toast('培训计划已保存（已同步至培训进度）','success');
       }}
     ]);
   }
@@ -2124,17 +2135,35 @@ const App = (function() {
   }
   function renderTrainingProgress() {
     var t = Store.getTraining();
-    var plans={}; t.plans.forEach(function(p){plans[p.id]=p;});
-    if(!t.progress.length) return '<div class="tr-section"><h4 class="tr-section-title">培训进度 / 完成情况</h4><p class="tr-empty">暂无进度记录</p></div>';
-    var rows = t.progress.map(function(pr){
-      var pname = plans[pr.planId]?plans[pr.planId].title:pr.planId;
-      var pct = pr.rate||0;
-      return '<div class="tr-progress-row">'
-        + '<div class="tr-progress-meta"><span class="tr-progress-trainee">'+trEsc(pr.trainee)+'</span><span class="tr-progress-plan">'+trEsc(pname)+'</span><span class="tr-progress-rate">'+pct+'%</span></div>'
-        + '<div class="tr-progress-bar"><div class="tr-progress-fill" style="width:'+pct+'%"></div></div>'
-        + '<div class="tr-progress-foot"><span class="tr-status tr-status-'+pr.status+'">'+statusLabel(pr.status)+'</span> 已完成课程：'+((pr.completedCourses||[]).length)+' 门</div>'
-        + '</div>';
-    }).join('');
+    var plansMap={}; t.plans.forEach(function(p){plansMap[p.id]=p;});
+    var hasProgress={};
+    (t.progress||[]).forEach(function(pr){ if(pr.planId) hasProgress[pr.planId]=true; });
+    var rows='';
+    // 1. 已有进度记录
+    if(t.progress&&t.progress.length){
+      rows += t.progress.map(function(pr){
+        var pname = plansMap[pr.planId]?plansMap[pr.planId].title:pr.planId;
+        var pct = pr.rate||0;
+        return '<div class="tr-progress-row">'
+          + '<div class="tr-progress-meta"><span class="tr-progress-trainee">'+trEsc(pr.trainee)+'</span><span class="tr-progress-plan">'+trEsc(pname)+'</span><span class="tr-progress-rate">'+pct+'%</span></div>'
+          + '<div class="tr-progress-bar"><div class="tr-progress-fill" style="width:'+pct+'%"></div></div>'
+          + '<div class="tr-progress-foot"><span class="tr-status tr-status-'+pr.status+'">'+statusLabel(pr.status)+'</span> 已完成课程：'+((pr.completedCourses||[]).length)+' 门</div>'
+          + '</div>';
+      }).join('');
+    }
+    // 2. 有计划但无进度记录的（历史数据兼容）
+    var missingPlans=t.plans.filter(function(p){return!hasProgress[p.id];});
+    if(missingPlans.length){
+      rows+='<p style="font-size:12px;color:#d97706;margin:10px 0 6px;">⚠️ 以下培训计划尚无受训者进度记录：</p>';
+      rows+=missingPlans.map(function(p){
+        return '<div class="tr-progress-row" style="opacity:.7;border-left:3px solid #f59e0b;">'
+          +'<div class="tr-progress-meta"><span class="tr-progress-trainee">待分配受训者</span><span class="tr-progress-plan">'+trEsc(p.title)+'</span><span class="tr-progress-rate">0%</span></div>'
+          +'<div class="tr-progress-bar"><div class="tr-progress-fill" style="width:0%;background:#f59e0b"></div></div>'
+          +'<div class="tr-progress-foot"><span class="tr-status tr-status-'+(p.status||'planned')+'">'+statusLabel(p.status||'planned')+'</span> 计划日期：'+trEsc(p.date||'-')+' | 讲师：'+trEsc(p.trainer||'-')+'</div>'
+          +'</div>';
+      }).join('');
+    }
+    if(!rows) return '<div class="tr-section"><h4 class="tr-section-title">培训进度 / 完成情况</h4><p class="tr-empty">暂无进度记录</p></div>';
     return '<div class="tr-section"><h4 class="tr-section-title">培训进度 / 完成情况</h4>'+rows+'</div>';
   }
   function renderTrainingMaterials() {
@@ -2301,7 +2330,7 @@ const App = (function() {
     var payload={ title:exam.title, difficulty:exam.difficulty, questions:exam.questions.map(function(q){return {type:q.type,q:q.q,options:q.options,points:q.points,answer:q.answer};}) };
     var enc = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
     var base = location.origin + location.pathname.replace(/index\.html$/,'');
-    var link = base + 'exam.html?e=' + encodeURIComponent(enc);
+    var link = base + 'exam.html#e=' + encodeURIComponent(enc);
     var qr = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(link);
     var body = '<div class="tr-share">'
       + '<div class="tr-share-qr"><img src="'+qr+'" alt="二维码" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.tr-share-link-text\').style.display=\'block\';"><div class="tr-share-link-text" style="display:none;word-break:break-all">'+trEsc(link)+'</div></div>'
@@ -2319,7 +2348,7 @@ const App = (function() {
   function copyText(id){ var el=document.getElementById(id); if(el){ el.select(); try{ document.execCommand('copy'); App.toast('已复制链接','success'); }catch(e){ App.toast('复制失败，请手动复制','warn'); } } }
   function copyShare(platform, enc){
     var base = location.origin + location.pathname.replace(/index\.html$/,'');
-    var link = base + 'exam.html?e=' + encodeURIComponent(enc);
+    var link = base + 'exam.html#e=' + encodeURIComponent(enc);
     var map={wechat:'微信',qq:'QQ',wecom:'企业微信',feishu:'飞书'};
     var text='【'+(map[platform]||'同事')+'】储能培训考试，请点击链接作答：'+link;
     copyToClipboard(text); App.toast('已复制'+(map[platform]||'')+'分享文案','success');
@@ -2344,18 +2373,18 @@ const App = (function() {
     if(!subs.length) return '<div class="tr-section"><p class="tr-empty">暂无考试成绩，请先在「培训考试」中作答并提交。</p></div>';
     var total = subs.length, passed = subs.filter(function(s){return s.passed;}).length;
     var avg = Math.round(subs.reduce(function(a,s){return a+s.score;},0)/total);
-    var maxScore = subs.reduce(function(a,s){return Math.max(a,s.total);},0);
+    var maxScore = subs.reduce(function(a,s){return Math.max(a,s.score);},0);
     var buckets=[0,0,0,0,0];
     subs.forEach(function(s){var r=s.score; if(r<60)buckets[0]++; else if(r<70)buckets[1]++; else if(r<80)buckets[2]++; else if(r<90)buckets[3]++; else buckets[4]++;});
     var labels=['<60','60-69','70-79','80-89','90-100'];
     var distBars = buckets.map(function(b,i){var pct= total? Math.round(b/total*100):0; return '<div class="tr-dist-row"><span class="tr-dist-label">'+labels[i]+'</span><div class="tr-dist-bar"><div class="tr-dist-fill" style="width:'+pct+'%"></div></div><span class="tr-dist-val">'+b+' ('+pct+'%)</span></div>';}).join('');
     var rows = subs.map(function(s){
       var exam=(t.exams||[]).find(function(e){return e.id===s.examId;});
-      var cn=exam?courseNameOf(exam.courseId):'-';
+      var cn=exam?exam.title:'远程回传';
       return '<tr><td>'+trEsc(s.trainee||'匿名')+'</td><td>'+trEsc(cn)+'</td><td>'+s.score+'/'+s.total+'</td><td>'+(s.passed?'<span class="tr-pass">合格</span>':'<span class="tr-fail">不合格</span>')+'</td><td>'+trEsc(s.submittedAt||'')+'</td></tr>';
     }).join('');
     return '<div class="tr-section"><div class="tr-stat-cards">'
-      + statCard('参考人数', total) + statCard('合格率', Math.round(passed/total*100)+'%') + statCard('平均分', avg) + statCard('满分', maxScore)
+      + statCard('参考人数', total) + statCard('合格率', Math.round(passed/total*100)+'%') + statCard('平均分', avg) + statCard('最高分', maxScore)
       + '</div>'
       + '<h4 class="tr-section-title">分数分布</h4>'+distBars
       + '<h4 class="tr-section-title">成绩明细</h4><table class="tr-table"><thead><tr><th>受训者</th><th>课程</th><th>得分</th><th>结果</th><th>提交时间</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
@@ -2368,9 +2397,9 @@ const App = (function() {
   }
   function buildScoreQueryTable(kw){
     var t=Store.getTraining(); var subs=(t.submissions||[]).slice();
-    if(kw){kw=kw.trim(); subs=subs.filter(function(s){var exam=(t.exams||[]).find(function(e){return e.id===s.examId;}); var cn=exam?courseNameOf(exam.courseId):''; return (s.trainee||'').indexOf(kw)>=0 || cn.indexOf(kw)>=0;});}
+    if(kw){kw=kw.trim(); subs=subs.filter(function(s){var exam=(t.exams||[]).find(function(e){return e.id===s.examId;}); var cn=exam?exam.title:''; return (s.trainee||'').indexOf(kw)>=0 || cn.indexOf(kw)>=0;});}
     if(!subs.length) return '<p class="tr-empty">无匹配成绩记录</p>';
-    var rows=subs.map(function(s){var exam=(t.exams||[]).find(function(e){return e.id===s.examId;}); var cn=exam?courseNameOf(exam.courseId):'-'; return '<tr><td>'+trEsc(s.trainee||'匿名')+'</td><td>'+trEsc(cn)+'</td><td>'+s.score+'/'+s.total+'</td><td>'+(s.passed?'<span class="tr-pass">合格</span>':'<span class="tr-fail">不合格</span>')+'</td><td>'+trEsc(s.submittedAt||'')+'</td></tr>';}).join('');
+    var rows=subs.map(function(s){var exam=(t.exams||[]).find(function(e){return e.id===s.examId;}); var cn=exam?exam.title:'远程回传'; return '<tr><td>'+trEsc(s.trainee||'匿名')+'</td><td>'+trEsc(cn)+'</td><td>'+s.score+'/'+s.total+'</td><td>'+(s.passed?'<span class="tr-pass">合格</span>':'<span class="tr-fail">不合格</span>')+'</td><td>'+trEsc(s.submittedAt||'')+'</td></tr>';}).join('');
     return '<table class="tr-table"><thead><tr><th>受训者</th><th>课程</th><th>得分</th><th>结果</th><th>提交时间</th></tr></thead><tbody>'+rows+'</tbody></table>';
   }
   function queryScore(kw){var el=document.getElementById('scoreQueryResult'); if(el) el.innerHTML=buildScoreQueryTable(kw);}

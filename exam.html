@@ -41,18 +41,18 @@
 </div>
 <script>
 (function(){
-  function getParam(name){ var m=location.search.match(new RegExp('[?&]'+name+'=([^&]*)')); return m?m[1]:''; }
+  function getParam(name){ var m=location.hash.match(new RegExp('#'+name+'=([^&]*)')); return m?m[1]:''; }
   function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
   var enc=getParam('e');
   var exam=null;
-  try{ exam=JSON.parse(decodeURIComponent(escape(atob(enc)))); }catch(e){ exam=null; }
+  try{ exam=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(enc))))); }catch(e){ exam=null; }
   var titleEl=document.getElementById('exTitle');
   var metaEl=document.getElementById('exMeta');
   var qEl=document.getElementById('exQuestions');
   var submitBtn=document.getElementById('exSubmit');
   if(!exam || !exam.questions || !exam.questions.length){
     titleEl.textContent='试卷无效';
-    metaEl.innerHTML='链接已损坏或缺失题目数据。<br>请确认链接完整（含 <b>?e=...</b> 参数），或向培训管理员重新获取分享链接。';
+    metaEl.innerHTML='链接已损坏或缺失题目数据。<br>请确认链接完整（含 <b>#e=...</b> 片段），或向培训管理员重新获取分享链接。';
     submitBtn.style.display='none';
     return;
   }
