@@ -1312,7 +1312,6 @@ const App = (function() {
           ${subTabs.map(st => `<button class="sub-tab-btn${st.id==='ho-pre'?' active':''}" data-tab-group="ho" data-subtab="${st.id}">${st.name}</button>`).join('')}
         </div>
         <div class="tab-toolbar-links">
-          <a href="javascript:void(0)" class="btn btn-sm btn-outline training-entry-btn" onclick="App.openTrainingSystem()" title="培训大纲/计划/进度/教材/考试/成绩/建议">🎓 培训管理系统</a>
           <a href="javascript:void(0)" class="btn btn-sm btn-outline" onclick="App.toast('文件管理系统子系统后续开发','info')" title="与文控管理子系统对接">📁 文件管理系统</a>
         </div>
       </div>
@@ -2004,19 +2003,7 @@ const App = (function() {
     );
   }
   function renderHoTrainingContent() {
-    return buildThreeColLayout(
-      buildProgressCard('ho-train','客户培训进度',[{id:'ht1',name:'系统操作培训(一般操作)'},{id:'ht2',name:'常见报警处理培训'},{id:'ht3',name:'应急处理流程培训'},{id:'ht4',name:'培训考核'},{id:'ht5',name:'培训评价+证书发放'}]),
-      buildDeliveryTableCard('培训管理',[
-        {item:'培训课件/教材准备',owner:'培训工程师',deadline:'商运前7天',status:'pending'},
-        {item:'培训场所/设备调试好',owner:'交付',deadline:'培训前',status:'pending'},
-        {item:'培训签到+考核成绩',owner:'培训',deadline:'培训当天',status:'pending'}]),
-      buildRiskCard('7_ho_training',[
-        {level:'high',text:'培训效果不达标→考核<80分需重新培训'},
-        {level:'medium',text:'关键操作人员缺席→补训+签到记录'},
-        {level:'medium',text:'教材/课件不完整→提前7天准备并审阅'},
-        {level:'low',text:'培训场所未就绪→设备调试+环境检查'}
-      ])
-    );
+    return renderTrainingSystem();
   }
   function renderHoTrialContent() {
     return buildThreeColLayout(
@@ -2042,22 +2029,6 @@ const App = (function() {
   function nowTime(){ var d=new Date(); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
   function statCard(label,val){ return '<div class="tr-stat-card"><div class="tr-stat-val">'+val+'</div><div class="tr-stat-label">'+label+'</div></div>'; }
 
-  function openTrainingSystem() {
-    var existing = document.getElementById('trainingOverlay');
-    if (existing) { existing.remove(); return; }
-    var overlay = document.createElement('div');
-    overlay.id = 'trainingOverlay';
-    overlay.className = 'training-overlay';
-    overlay.innerHTML = '<div class="training-overlay-inner">'
-      + '<div class="training-overlay-head"><h3>🎓 培训管理系统</h3><button class="btn btn-xs btn-outline" onclick="App.closeTrainingOverlay()">✕ 关闭</button></div>'
-      + renderTrainingSystem()
-      + '</div>';
-    document.body.appendChild(overlay);
-  }
-  function closeTrainingOverlay() {
-    var el = document.getElementById('trainingOverlay');
-    if (el) el.remove();
-  }
   function renderTrainingSystem() {
     return '<div class="training-system">'
       + '<div class="training-nav">'
@@ -4499,7 +4470,7 @@ const App = (function() {
     buildSurveyEmailBody,downloadSurveyCSV,
     sendEmailViaAPI,fallbackMailto,uploadCSVToCloud,checkBackendAvailable,
     updateProjectParams,renderDeliveryOverview,
-    openTrainingSystem,showTrainingModule,addTrainingPlan,delTrainingPlan,uploadMaterial,addMaterialMeta,downloadMaterial,delMaterial,startExam,submitExam,shareExam,copyText,copyShare,importResult,queryScore,submitTrainingFeedback,
+    showTrainingModule,addTrainingPlan,delTrainingPlan,uploadMaterial,addMaterialMeta,downloadMaterial,delMaterial,startExam,submitExam,shareExam,copyText,copyShare,importResult,queryScore,submitTrainingFeedback,
     drawMfgChart,drawInstallChart,drawSATChart,drawLogisticsChart,
     toast
   };

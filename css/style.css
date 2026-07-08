@@ -1092,7 +1092,7 @@ body {
 }
 
 /* ========== 培训管理系统专栏 ========== */
-.training-system { margin-top: 10px; }
+.training-system { margin-top: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; }
 .training-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
 .tr-nav-btn { padding: 6px 14px; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all .15s; }
 .tr-nav-btn:hover { color: var(--c-primary); border-color: var(--c-primary); }
