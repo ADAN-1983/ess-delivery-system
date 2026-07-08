@@ -1,5 +1,5 @@
 // ============================================================
-// app.js - ESS交付管理系统 v1.11.0-fix3 主控脚本
+// app.js - ESS交付管理系统 v1.11.0-fix5 主控脚本
 // 修复：L1默认选中+参数 | L2进度轴 | Tab均分 | 次级标签内容
 // 丰富：生产制造/物流/安装/调试/移交/售后 全部子页面内容
 // ============================================================
@@ -703,9 +703,9 @@ const App = (function() {
       + '</div>';
     // 下方：质量记录区（录入+台账，可折叠默认折叠）+ 高频问题Pareto（可折叠默认折叠）
     var qaBlock = renderQualityRecords(pjId);
-    var paretoBlock = '<div class="card card-foldable" id="mfgParetoCard">'
+    var paretoBlock = '<div class="card card-foldable open" id="mfgParetoCard">'
       + '<div class="card-header" onclick="App.toggleCardFold(this)">📊 高频质量问题 Pareto 分析（按频次排序）</div>'
-      + '<div class="card-foldable-content" id="mfgParetoContent">' + renderQualityPareto(pjId) + '</div></div>';
+      + '<div class="card-foldable-content open" id="mfgParetoContent">' + renderQualityPareto(pjId) + '</div></div>';
     return '<div style="display:grid;grid-template-columns:55% 1fr;gap:16px;">' + qcLeft + qcRight + '</div>'
       + '<div style="margin-top:16px;">' + qaBlock + '</div>'
       + '<div style="margin-top:14px;">' + paretoBlock + '</div>';
@@ -718,8 +718,8 @@ const App = (function() {
     var typeOpts = '<option value="factory">出厂检测</option><option value="site">现场验收</option><option value="iqc">来料检</option><option value="ncr">NCR整改</option>';
     var sevOpts = '<option value="low">轻微</option><option value="mid">一般</option><option value="high">严重</option><option value="critical">致命</option>';
     var statusOpts = '<option value="open">未关闭</option><option value="closed">已关闭</option><option value="verified">已验证</option>';
-    var formHTML = '<div class="card card-foldable" style="margin-bottom:14px;"><div class="card-header" onclick="App.toggleCardFold(this)">➕ 质量记录录入（出厂检测 / 现场验收 / 来料 / NCR）</div>'
-      + '<div class="card-foldable-content"><div class="card-body"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;">'
+    var formHTML = '<div class="card card-foldable open" style="margin-bottom:14px;"><div class="card-header" onclick="App.toggleCardFold(this)">➕ 质量记录录入（出厂检测 / 现场验收 / 来料 / NCR）</div>'
+      + '<div class="card-foldable-content open"><div class="card-body"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;">'
       + '<label class="fm-label">类型<select id="qrType" class="inline-input">' + typeOpts + '</select></label>'
       + '<label class="fm-label">日期<input id="qrDate" type="date" class="inline-input" value="' + new Date().toISOString().slice(0,10) + '"></label>'
       + '<label class="fm-label">检验员<input id="qrInspector" class="inline-input" placeholder="姓名"></label>'
@@ -728,7 +728,7 @@ const App = (function() {
       + '<label class="fm-label">状态<select id="qrStatus" class="inline-input">' + statusOpts + '</select></label>'
       + '<button class="btn btn-primary" onclick="App.saveQualityRecord()">保存记录</button>'
       + '</div></div></div></div>';
-    var listHTML = '<div class="card card-foldable"><div class="card-header" onclick="App.toggleCardFold(this)">📋 质量记录台账（' + records.length + ' 条）</div><div class="card-foldable-content"><div class="card-body scrollable" style="max-height:260px;overflow:auto;">'
+    var listHTML = '<div class="card card-foldable open"><div class="card-header" onclick="App.toggleCardFold(this)">📋 质量记录台账（' + records.length + ' 条）</div><div class="card-foldable-content open"><div class="card-body scrollable" style="max-height:260px;overflow:auto;">'
       + (records.length ? '<table class="delivery-table"><thead><tr><th>类型</th><th>日期</th><th>检验员</th><th>问题点</th><th>严重度</th><th>状态</th><th></th></tr></thead><tbody>'
         + records.slice().reverse().map(function(r){
             var tMap = {factory:'出厂',site:'现场',iqc:'来料',ncr:'NCR'};
@@ -1730,15 +1730,17 @@ const App = (function() {
         <div id="commissionSubContentArea" style="flex:1;min-width:0;">${subTabContents}</div>
         <div style="flex:0 0 280px;">${riskHTML}${efficiencyHTML}</div>
       </div>
-      <div class="tab-grid-3 mt-2">
-        ${witnessCheckHTML}
-        ${buildM5ECard(sop.sevenM1E,'系统调试7M1E管控',true)}
-        <div class="card card-foldable">
-          <div class="card-header" onclick="App.toggleCardFold(this)">📊 系统调试 · 计划 vs 实际进度对比图</div>
-          <div class="card-foldable-content" style="padding:10px;">
-          <canvas id="satChart"></canvas>
-          <div id="satChartAdvice" style="margin-top:8px;font-size:12px;color:#475569;line-height:1.6;"></div>
-        </div></div>
+      <div style="display:flex;gap:16px;margin-top:12px;align-items:flex-start;">
+        <div style="flex:0 0 280px;">${witnessCheckHTML}</div>
+        <div style="flex:1;min-width:0;">${buildM5ECard(sop.sevenM1E,'系统调试7M1E管控',true)}</div>
+        <div style="flex:0 0 280px;">
+          <div class="card card-foldable">
+            <div class="card-header" onclick="App.toggleCardFold(this)">📊 系统调试 · 计划 vs 实际进度对比图</div>
+            <div class="card-foldable-content" style="padding:10px;">
+            <canvas id="satChart"></canvas>
+            <div id="satChartAdvice" style="margin-top:8px;font-size:12px;color:#475569;line-height:1.6;"></div>
+          </div></div>
+        </div>
       </div>
     `;
   }
