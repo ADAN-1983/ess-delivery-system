@@ -1,5 +1,5 @@
 // ============================================================
-// app.js - ESS交付管理系统 v1.11.0-fix2 主控脚本
+// app.js - ESS交付管理系统 v1.11.0-fix3 主控脚本
 // 修复：L1默认选中+参数 | L2进度轴 | Tab均分 | 次级标签内容
 // 丰富：生产制造/物流/安装/调试/移交/售后 全部子页面内容
 // ============================================================
@@ -553,12 +553,14 @@ const App = (function() {
     ];
     var pj = Store.getSelectedProject();
     var pjId = pj ? pj.id : '';
-    // 右侧：风险提示与对策 + 计划vs实际进度对比图（质量分析报表已移入mfg-qc子标签内）
+    // 右侧：风险提示与对策 + 计划vs实际进度对比图 + 质量分析报表（仅mfg-qc子标签显示，默认展开）
     var mfgRightHTML = '<div style="flex:0 0 320px;display:flex;flex-direction:column;gap:12px;">'
       + '<div class="card card-foldable open"><div class="card-header" onclick="App.toggleCardFold(this)">⚠ 风险提示与对策</div>'
       + '<div class="card-foldable-content open" id="mfgRiskCardContent"><div style="color:var(--c-gray-400);font-size:12px;padding:8px;">切换子标签查看对应风险</div></div></div>'
       + '<div class="card card-foldable open"><div class="card-header" onclick="App.toggleCardFold(this)">📊 计划 vs 实际进度</div>'
       + '<div class="card-foldable-content open" style="padding:10px;"><canvas id="mfgChart"></canvas></div></div>'
+      + '<div class="card card-foldable open" id="mfgQualityReportCard" style="display:none;"><div class="card-header" onclick="App.toggleCardFold(this)">🧪 质量分析报表</div>'
+      + '<div class="card-foldable-content open" id="mfgQualityReportContent" style="padding:10px;">' + renderQualityKPI(pjId) + '</div></div>'
       + '</div>';
 
     return `
@@ -699,12 +701,14 @@ const App = (function() {
         {item:'质量问题追踪表(当月开录当月关)',owner:'质量',deadline:'每月更新',status:'info'}
       ])
       + '</div>';
-    // 下方：质量记录区 + KPI分析 + Pareto（全在mfg-qc子标签内）
+    // 下方：质量记录区（录入+台账，可折叠默认折叠）+ 高频问题Pareto（可折叠默认折叠）
     var qaBlock = renderQualityRecords(pjId);
-    var analysisBlock = '<div id="mfgQualityAnalysisArea">' + renderQualityKPIAndPareto(pjId) + '</div>';
+    var paretoBlock = '<div class="card card-foldable" id="mfgParetoCard">'
+      + '<div class="card-header" onclick="App.toggleCardFold(this)">📊 高频质量问题 Pareto 分析（按频次排序）</div>'
+      + '<div class="card-foldable-content" id="mfgParetoContent">' + renderQualityPareto(pjId) + '</div></div>';
     return '<div style="display:grid;grid-template-columns:55% 1fr;gap:16px;">' + qcLeft + qcRight + '</div>'
       + '<div style="margin-top:16px;">' + qaBlock + '</div>'
-      + '<div style="margin-top:14px;">' + analysisBlock + '</div>';
+      + '<div style="margin-top:14px;">' + paretoBlock + '</div>';
   }
 
   // 质量记录录入 + 台账（不含报表——报表移至右侧固定区域）
@@ -714,8 +718,8 @@ const App = (function() {
     var typeOpts = '<option value="factory">出厂检测</option><option value="site">现场验收</option><option value="iqc">来料检</option><option value="ncr">NCR整改</option>';
     var sevOpts = '<option value="low">轻微</option><option value="mid">一般</option><option value="high">严重</option><option value="critical">致命</option>';
     var statusOpts = '<option value="open">未关闭</option><option value="closed">已关闭</option><option value="verified">已验证</option>';
-    var formHTML = '<div class="card" style="margin-bottom:14px;"><div class="card-header">➕ 质量记录录入（出厂检测 / 现场验收 / 来料 / NCR）</div>'
-      + '<div class="card-body"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;">'
+    var formHTML = '<div class="card card-foldable" style="margin-bottom:14px;"><div class="card-header" onclick="App.toggleCardFold(this)">➕ 质量记录录入（出厂检测 / 现场验收 / 来料 / NCR）</div>'
+      + '<div class="card-foldable-content"><div class="card-body"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;">'
       + '<label class="fm-label">类型<select id="qrType" class="inline-input">' + typeOpts + '</select></label>'
       + '<label class="fm-label">日期<input id="qrDate" type="date" class="inline-input" value="' + new Date().toISOString().slice(0,10) + '"></label>'
       + '<label class="fm-label">检验员<input id="qrInspector" class="inline-input" placeholder="姓名"></label>'
@@ -723,8 +727,8 @@ const App = (function() {
       + '<label class="fm-label">严重度<select id="qrSeverity" class="inline-input">' + sevOpts + '</select></label>'
       + '<label class="fm-label">状态<select id="qrStatus" class="inline-input">' + statusOpts + '</select></label>'
       + '<button class="btn btn-primary" onclick="App.saveQualityRecord()">保存记录</button>'
-      + '</div></div></div>';
-    var listHTML = '<div class="card"><div class="card-header">📋 质量记录台账（' + records.length + ' 条）</div><div class="card-body scrollable" style="max-height:260px;overflow:auto;">'
+      + '</div></div></div></div>';
+    var listHTML = '<div class="card card-foldable"><div class="card-header" onclick="App.toggleCardFold(this)">📋 质量记录台账（' + records.length + ' 条）</div><div class="card-foldable-content"><div class="card-body scrollable" style="max-height:260px;overflow:auto;">'
       + (records.length ? '<table class="delivery-table"><thead><tr><th>类型</th><th>日期</th><th>检验员</th><th>问题点</th><th>严重度</th><th>状态</th><th></th></tr></thead><tbody>'
         + records.slice().reverse().map(function(r){
             var tMap = {factory:'出厂',site:'现场',iqc:'来料',ncr:'NCR'};
@@ -738,7 +742,7 @@ const App = (function() {
           }).join('')
         + '</tbody></table>'
         : '<div style="padding:20px;text-align:center;color:var(--c-gray-400);">暂无质量记录，录入后自动生成台账与分析</div>')
-      + '</div></div>';
+      + '</div></div></div>';
     return formHTML + listHTML;
   }
 
@@ -747,9 +751,8 @@ const App = (function() {
     return renderQualityRecords(pjId) + renderQualityKPIAndPareto(pjId);
   }
 
-  // 质量KPI卡 + 高频问题Pareto（专属于mfg-qc子标签）
-  function renderQualityKPIAndPareto(pjId) {
-    var pj = Store.getSelectedProject();
+  // 质量KPI卡（🧪 质量分析报表）—— 右侧窄栏专用，stacked=true 纵向排列
+  function renderQualityKPI(pjId, stacked) {
     var qcDefs = ['qc1','qc2','qc3','qc4','qc5','qc6','qc7','qc8'];
     var qcDone = 0;
     qcDefs.forEach(function(id){ var st = Store.getSOPCheckState(pjId,'qc',id); if (st && st.passed) qcDone++; });
@@ -759,6 +762,20 @@ const App = (function() {
     var closed = records.filter(function(r){ return r.status === 'closed' || r.status === 'verified'; }).length;
     var openCnt = total - closed;
     var passRate = total ? Math.round(closed / total * 100) : 0;
+    var freqMap = {};
+    records.forEach(function(r){ if (r.item) freqMap[r.item] = (freqMap[r.item]||0) + 1; });
+    var freqArr = Object.keys(freqMap).map(function(k){ return { item:k, cnt:freqMap[k] }; }).sort(function(a,b){ return b.cnt - a.cnt; });
+    return '<div class="quality-kpi-row' + (stacked ? ' kpi-stack' : '') + '">'
+      + qualityKpiCard('IPQC/FQC/OQC 合格率', qcRate + '%', qcDone + '/' + qcDefs.length, qcRate>=90?'good':qcRate>=70?'warn':'bad')
+      + qualityKpiCard('质量记录闭环率', passRate + '%', closed + '/' + total, passRate>=90?'good':passRate>=70?'warn':'bad')
+      + qualityKpiCard('未关闭问题', openCnt + ' 项', '待处理', openCnt===0?'good':'warn')
+      + qualityKpiCard('高频问题点', freqArr.length ? (freqArr[0].item + ' ×' + freqArr[0].cnt) : '—', 'Top1', 'neutral')
+      + '</div>';
+  }
+
+  // 高频问题 Pareto 分析表（不含外层卡片，由调用方包裹折叠卡片）
+  function renderQualityPareto(pjId) {
+    var records = (Store.getQualityData(pjId).records || []);
     var freqMap = {};
     records.forEach(function(r){ if (r.item) freqMap[r.item] = (freqMap[r.item]||0) + 1; });
     var freqArr = Object.keys(freqMap).map(function(k){ return { item:k, cnt:freqMap[k] }; }).sort(function(a,b){ return b.cnt - a.cnt; });
@@ -774,23 +791,13 @@ const App = (function() {
         + '<td>' + pct + '%</td>'
         + '<td><span style="color:' + (cumPct>=80?'#dc2626':'#2563eb') + ';font-weight:600;">' + cumPct + '%</span></td></tr>';
     }).join('');
-    // KPI卡片行
-    var kpi = '<div class="card"><div class="card-header">🧪 质量分析报表</div><div class="card-body">'
-      + '<div class="quality-kpi-row">'
-      + qualityKpiCard('IPQC/FQC/OQC 合格率', qcRate + '%', qcDone + '/' + qcDefs.length, qcRate>=90?'good':qcRate>=70?'warn':'bad')
-      + qualityKpiCard('质量记录闭环率', passRate + '%', closed + '/' + total, passRate>=90?'good':passRate>=70?'warn':'bad')
-      + qualityKpiCard('未关闭问题', openCnt + ' 项', '待处理', openCnt===0?'good':'warn')
-      + qualityKpiCard('高频问题点', freqArr.length ? (freqArr[0].item + ' ×' + freqArr[0].cnt) : '—', 'Top1', 'neutral')
-      + '</div>'
-      // Pareto 分析表
-      + '<div style="margin-top:12px;"><div class="card" style="box-shadow:none;border:1px solid var(--c-gray-200);"><div class="card-header" style="font-size:13px;background:var(--c-gray-50);">📊 高频质量问题 Pareto 分析（按频次排序）</div>'
-      + '<div class="card-body" style="padding:8px;">'
-      + (freqArr.length ? '<table class="delivery-table" style="font-size:12px;"><thead><tr><th>问题点</th><th>频次</th><th style="width:120px;">占比分布</th><th>%</th><th>累计%</th></tr></thead><tbody>' + paretoRows + '</tbody></table>'
-        : '<div style="padding:16px;text-align:center;color:var(--c-gray-400);font-size:12px;">暂无问题点数据，录入质量记录后自动生成Pareto分析</div>')
-      + '</div></div></div>'
-      + '</div></div>'
-      + '<div style="font-size:11px;color:var(--c-gray-400);padding:4px 10px;text-align:right;">📎 报表范围：' + (pj?pj.name:'当前项目') + ' · 实时更新</div>';
-    return kpi;
+    return freqArr.length ? '<table class="delivery-table" style="font-size:12px;"><thead><tr><th>问题点</th><th>频次</th><th style="width:120px;">占比分布</th><th>%</th><th>累计%</th></tr></thead><tbody>' + paretoRows + '</tbody></table>'
+      : '<div style="padding:16px;text-align:center;color:var(--c-gray-400);font-size:12px;">暂无问题点数据，录入质量记录后自动生成Pareto分析</div>';
+  }
+
+  // 向后兼容：组合版
+  function renderQualityKPIAndPareto(pjId) {
+    return renderQualityKPI(pjId, false) + renderQualityPareto(pjId);
   }
 
   // 向后兼容：renderQualityReport → renderQualityKPIAndPareto
@@ -809,8 +816,11 @@ const App = (function() {
     var noteEl = document.getElementById('qcnote-' + qcId);
     var note = noteEl ? noteEl.value : '';
     Store.setSOPCheckState(pj.id, 'qc', qcId, cb.checked, note);
-    var analysisEl = document.getElementById('mfgQualityAnalysisArea');
-    if (analysisEl) analysisEl.innerHTML = renderQualityKPIAndPareto(pj.id);
+    // 刷新右侧栏质量分析报表 KPI + 本子标签Pareto
+    var kpiEl = document.getElementById('mfgQualityReportContent');
+    if (kpiEl) kpiEl.innerHTML = renderQualityKPI(pj.id, true);
+    var paretoEl = document.getElementById('mfgParetoContent');
+    if (paretoEl) paretoEl.innerHTML = renderQualityPareto(pj.id);
   }
 
   function saveQualityRecord() {
@@ -833,6 +843,8 @@ const App = (function() {
     toast('质量记录已保存', 'success');
     var area = document.querySelector('.sub-tab-panel[data-panel="mfg-qc"]');
     if (area) area.innerHTML = renderMfgQCContent();
+    var kpiEl = document.getElementById('mfgQualityReportContent');
+    if (kpiEl) kpiEl.innerHTML = renderQualityKPI(pj.id, true);
   }
 
   function delQualityRecord(recId) {
@@ -843,6 +855,8 @@ const App = (function() {
     Store.saveQualityData(pj.id, qData);
     var area = document.querySelector('.sub-tab-panel[data-panel="mfg-qc"]');
     if (area) area.innerHTML = renderMfgQCContent();
+    var kpiEl = document.getElementById('mfgQualityReportContent');
+    if (kpiEl) kpiEl.innerHTML = renderQualityKPI(pj.id, true);
   }
 
   function renderMfgPackContent() {
@@ -2024,6 +2038,20 @@ const App = (function() {
     riskContent.innerHTML = risks.map(function(r) {
       return '<div class="risk-item risk-' + r.level + '"><span class="risk-icon">' + (r.level==='high'?'🔴':r.level==='medium'?'🟡':'🔵') + '</span><span>' + r.text + '</span></div>';
     }).join('');
+  }
+
+  // 质量分析报表卡片：仅mfg-qc子标签显示，其它子标签隐藏
+  function refreshMfgQualityReportCard(subtabId) {
+    var card = document.getElementById('mfgQualityReportCard');
+    if (!card) return;
+    if (subtabId === 'mfg-qc') {
+      card.style.display = '';
+      var c = document.getElementById('mfgQualityReportContent');
+      var pj = Store.getSelectedProject();
+      if (c && pj) c.innerHTML = renderQualityKPI(pj.id, true);
+    } else {
+      card.style.display = 'none';
+    }
   }
 
   function switchFatPhase(btn) {
@@ -4533,6 +4561,7 @@ const App = (function() {
         }
         else if (group === 'mfg') {
           refreshMfgRiskCard(subtabId);
+          refreshMfgQualityReportCard(subtabId);
         }
       });
     });

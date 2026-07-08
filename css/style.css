@@ -1273,6 +1273,8 @@ body {
 .quality-kpi-card.kpi-warn { border-left-color:#f59e0b; } .quality-kpi-card.kpi-warn .qk-val { color:#d97706; }
 .quality-kpi-card.kpi-bad { border-left-color:#dc2626; } .quality-kpi-card.kpi-bad .qk-val { color:#dc2626; }
 .quality-kpi-card.kpi-neutral { border-left-color:#2563eb; } .quality-kpi-card.kpi-neutral .qk-val { color:#2563eb; }
+/* 右侧窄栏 KPI 纵向排列 */
+.quality-kpi-row.kpi-stack { grid-template-columns: 1fr; gap:6px; }
 
 /* 响应式 */
 @media (max-width: 900px) {
