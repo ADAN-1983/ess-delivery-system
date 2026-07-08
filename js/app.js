@@ -210,9 +210,9 @@ const App = (function() {
       if (tabKey === '6_commission') {
         initSATAllPassedState();
         drawSATChart();
-        // 初始化风险卡片与效率卡片（默认显示第一个子标签sat-1的数据）
         refreshCommissionRiskCard('sat-1');
         refreshCommissionEfficiencyCard('sat-1');
+        refreshSAT10ReportTables();
       }
       if (tabKey === '4_logistics') {
         drawLogisticsChart();
@@ -551,12 +551,15 @@ const App = (function() {
       {id:'mfg-order',name:'订单转化&排产'},{id:'mfg-iqc',name:'来料检验IQC'},{id:'mfg-assemble',name:'生产装配'},
       {id:'mfg-qc',name:'质量管控IPQC/FQC'},{id:'mfg-fat',name:'FAT工厂验收'},{id:'mfg-pack',name:'包装发货'}
     ];
-    // 右侧：风险提示与对策 + 计划vs实际进度对比图（默认展开）
-    var mfgRightHTML = '<div style="flex:0 0 280px;display:flex;flex-direction:column;gap:12px;">'
+    var pj = Store.getSelectedProject();
+    var pjId = pj ? pj.id : '';
+    // 右侧：风险提示与对策 + 计划vs实际进度对比图 + 质量分析报表（默认展开）
+    var mfgRightHTML = '<div style="flex:0 0 320px;display:flex;flex-direction:column;gap:12px;">'
       + '<div class="card card-foldable open"><div class="card-header" onclick="App.toggleCardFold(this)">⚠ 风险提示与对策</div>'
       + '<div class="card-foldable-content open" id="mfgRiskCardContent"><div style="color:var(--c-gray-400);font-size:12px;padding:8px;">切换子标签查看对应风险</div></div></div>'
       + '<div class="card card-foldable open"><div class="card-header" onclick="App.toggleCardFold(this)">📊 计划 vs 实际进度</div>'
       + '<div class="card-foldable-content open" style="padding:10px;"><canvas id="mfgChart"></canvas></div></div>'
+      + '<div class="card" style="flex-shrink:0;"><div class="card-header">🧪 质量分析报表</div><div class="card-body" id="mfgQualityReportArea">' + renderQualityReport(pjId) + '</div></div>'
       + '</div>';
 
     return `
@@ -697,14 +700,14 @@ const App = (function() {
         {item:'质量问题追踪表(当月开录当月关)',owner:'质量',deadline:'每月更新',status:'info'}
       ])
       + '</div>';
-    // 下方：质量记录 + 分析报表（全宽）
-    var qaBlock = renderQualityRecordsAndReport(pjId);
+    // 下方：质量记录区（全宽，不含报表——报表已移至右侧固定区域）
+    var qaBlock = renderQualityRecords(pjId);
     return '<div style="display:grid;grid-template-columns:55% 1fr;gap:16px;">' + qcLeft + qcRight + '</div>'
       + '<div style="margin-top:16px;">' + qaBlock + '</div>';
   }
 
-  // 质量记录录入 + 高频问题 Pareto 分析
-  function renderQualityRecordsAndReport(pjId) {
+  // 质量记录录入 + 台账（不含报表——报表移至右侧固定区域）
+  function renderQualityRecords(pjId) {
     var qData = Store.getQualityData(pjId);
     var records = qData.records || [];
     var typeOpts = '<option value="factory">出厂检测</option><option value="site">现场验收</option><option value="iqc">来料检</option><option value="ncr">NCR整改</option>';
@@ -735,25 +738,26 @@ const App = (function() {
         + '</tbody></table>'
         : '<div style="padding:20px;text-align:center;color:var(--c-gray-400);">暂无质量记录，录入后自动生成台账与分析</div>')
       + '</div></div>';
-    var reportHTML = renderQualityReport(pjId);
-    return formHTML + listHTML + reportHTML;
+    return formHTML + listHTML;
   }
 
-  // 质量分析报表：合格率 + 高频问题 Pareto
+  // 质量记录录入 + 高频问题 Pareto 分析（全量版，兼容旧调用）
+  function renderQualityRecordsAndReport(pjId) {
+    return renderQualityRecords(pjId) + renderQualityReport(pjId);
+  }
+
+  // 质量分析报表：合格率 + 高频问题 Pareto（返回纯内容，不含外层卡片）
   function renderQualityReport(pjId) {
     var pj = Store.getSelectedProject();
-    // 1) IPQC/FQC/OQC 检验点合格率
     var qcDefs = ['qc1','qc2','qc3','qc4','qc5','qc6','qc7','qc8'];
     var qcDone = 0;
     qcDefs.forEach(function(id){ var st = Store.getSOPCheckState(pjId,'qc',id); if (st && st.passed) qcDone++; });
     var qcRate = Math.round(qcDone / qcDefs.length * 100);
-    // 2) 质量记录统计
     var records = (Store.getQualityData(pjId).records || []);
     var total = records.length;
     var closed = records.filter(function(r){ return r.status === 'closed' || r.status === 'verified'; }).length;
     var openCnt = total - closed;
     var passRate = total ? Math.round(closed / total * 100) : 0;
-    // 3) 高频问题 Pareto（按问题点聚合）
     var freqMap = {};
     records.forEach(function(r){ if (r.item) freqMap[r.item] = (freqMap[r.item]||0) + 1; });
     var freqArr = Object.keys(freqMap).map(function(k){ return { item:k, cnt:freqMap[k] }; }).sort(function(a,b){ return b.cnt - a.cnt; });
@@ -769,20 +773,18 @@ const App = (function() {
         + '<td>' + pct + '%</td>'
         + '<td><span style="color:' + (cumPct>=80?'#dc2626':'#2563eb') + ';font-weight:600;">' + cumPct + '%</span></td></tr>';
     }).join('');
-    // 组合 KPI 卡
     var kpi = '<div class="quality-kpi-row">'
       + qualityKpiCard('IPQC/FQC/OQC 合格率', qcRate + '%', qcDone + '/' + qcDefs.length, qcRate>=90?'good':qcRate>=70?'warn':'bad')
       + qualityKpiCard('质量记录闭环率', passRate + '%', closed + '/' + total, passRate>=90?'good':passRate>=70?'warn':'bad')
       + qualityKpiCard('未关闭问题', openCnt + ' 项', '待处理', openCnt===0?'good':'warn')
       + qualityKpiCard('高频问题点', freqArr.length ? (freqArr[0].item + ' ×' + freqArr[0].cnt) : '—', 'Top1', 'neutral')
       + '</div>';
-    var paretoHTML = '<div class="card" style="margin-top:14px;"><div class="card-header">📊 高频质量问题 Pareto 分析（按问题点出现频次，累计线定位关键少数）</div>'
+    var paretoHTML = '<div class="card" style="margin-top:8px;"><div class="card-header">📊 高频质量问题 Pareto 分析（按频次排序）</div>'
       + '<div class="card-body">'
-      + (freqArr.length ? '<table class="delivery-table"><thead><tr><th>问题点</th><th>频次</th><th style="width:160px;">占比分布</th><th>单项%</th><th>累计%</th></tr></thead><tbody>' + paretoRows + '</tbody></table>'
-        : '<div style="padding:18px;text-align:center;color:var(--c-gray-400);">暂无问题点数据，录入质量记录后自动生成 Pareto</div>')
+      + (freqArr.length ? '<table class="delivery-table"><thead><tr><th>问题点</th><th>频次</th><th style="width:140px;">占比分布</th><th>%</th><th>累计%</th></tr></thead><tbody>' + paretoRows + '</tbody></table>'
+        : '<div style="padding:12px;text-align:center;color:var(--c-gray-400);">暂无问题点数据，录入质量记录后自动生成</div>')
       + '</div></div>';
-    return '<div class="card" style="margin-top:14px;"><div class="card-header">🧪 质量分析报表 · ' + (pj?pj.name:'') + '</div>'
-      + '<div class="card-body">' + kpi + '</div></div>' + paretoHTML;
+    return kpi + '<div style="font-size:12px;color:var(--c-gray-400);padding:4px 0;">报表范围：' + (pj?pj.name:'当前项目') + '</div>' + paretoHTML;
   }
 
   function qualityKpiCard(title, val, sub, tone) {
@@ -796,7 +798,7 @@ const App = (function() {
     var noteEl = document.getElementById('qcnote-' + qcId);
     var note = noteEl ? noteEl.value : '';
     Store.setSOPCheckState(pj.id, 'qc', qcId, cb.checked, note);
-    var reportEl = document.getElementById('qualityReportArea');
+    var reportEl = document.getElementById('mfgQualityReportArea');
     if (reportEl) reportEl.innerHTML = renderQualityReport(pj.id);
   }
 
@@ -820,6 +822,8 @@ const App = (function() {
     toast('质量记录已保存', 'success');
     var area = document.querySelector('.sub-tab-panel[data-panel="mfg-qc"]');
     if (area) area.innerHTML = renderMfgQCContent();
+    var rptEl = document.getElementById('mfgQualityReportArea');
+    if (rptEl) rptEl.innerHTML = renderQualityReport(pj.id);
   }
 
   function delQualityRecord(recId) {
@@ -830,6 +834,8 @@ const App = (function() {
     Store.saveQualityData(pj.id, qData);
     var area = document.querySelector('.sub-tab-panel[data-panel="mfg-qc"]');
     if (area) area.innerHTML = renderMfgQCContent();
+    var rptEl = document.getElementById('mfgQualityReportArea');
+    if (rptEl) rptEl.innerHTML = renderQualityReport(pj.id);
   }
 
   function renderMfgPackContent() {
@@ -1005,6 +1011,31 @@ const App = (function() {
     var pjId = p.id;
     var log = Store.getLogistics(pjId);
     var shipments = log.shipments || [];
+    // 若无批次记录，自动按项目柜数填充种子数据
+    if (!shipments.length) {
+      var cabinetCount = parseInt(p.cabinetCount) || 48;
+      var stdBatch = 16;
+      var totalBatches = Math.ceil(cabinetCount / stdBatch);
+      var seedStatuses = ['arrived','intransit','planned'];
+      var today = new Date().toISOString().slice(0,10);
+      var lastWeek = new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+      var prevWeek = new Date(Date.now()-14*86400000).toISOString().slice(0,10);
+      for (var i = 0; i < totalBatches; i++) {
+        var start = i * stdBatch + 1;
+        var end = Math.min((i+1) * stdBatch, cabinetCount);
+        var cnt = end - start + 1;
+        shipments.push({
+          id: 'sh_seed_' + Date.now() + '_' + i,
+          batch: '第' + (i+1) + '批(' + cnt + '柜)', cabinetRange: '#' + start + '-#' + end,
+          status: i < seedStatuses.length ? seedStatuses[i] : 'planned',
+          planShip: prevWeek, actualShip: i===0 ? lastWeek : '', arrive: i===0 ? today : '',
+          region: '印度新德里', damageRate: i===0 ? 1.5 : 0,
+          note: i===0 ? '全到货验收完成' : (i===1 ? '海运途中' : '备货中')
+        });
+      }
+      log.shipments = shipments;
+      Store.saveLogistics(pjId, log);
+    }
     var statusMap = {planned:'计划中',shipped:'已发货',intransit:'在途',arrived:'已到货'};
     var statusSel = function(cur){ return Object.keys(statusMap).map(function(k){ return '<option value="'+k+'"'+(k===cur?' selected':'')+'>'+statusMap[k]+'</option>'; }).join(''); };
     // 左栏：批次跟踪（数据驱动，持久化）
@@ -1030,54 +1061,49 @@ const App = (function() {
       + '<th>批次</th><th>柜号范围</th><th>状态</th><th>预计发货</th><th>实际发货</th><th>到货</th><th>区域</th><th>货损率%</th><th>备注</th><th></th></tr></thead><tbody>'
       + (rows || '<tr><td colspan="10" style="text-align:center;color:var(--c-gray-400);padding:18px;">暂无批次，点击「新增批次」开始跟踪</td></tr>')
       + '</tbody></table></div></div>';
-    // 右栏：协同信息 + 物流分析
-    var trackRight = '<div style="display:flex;flex-direction:column;gap:12px;">'
-      + buildDeliveryTableCard('批次管理与交付协同',[
-        {item:'批次发货通知(客户/监理)',owner:'物流',deadline:'发货前',status:'pending'},
-        {item:'每批到货验收报告',owner:'交付工程师',deadline:'到货当天',status:'pending'},
-        {item:'运输损坏记录与索赔',owner:'物流',deadline:'发现即报',status:'warn'}])
-      + '<div id="logTrackSummary">' + renderLogTrackSummary(pjId) + '</div>'
-      + '</div>';
-    return '<div style="display:grid;grid-template-columns:65% 1fr;gap:16px;">' + trackLeft + trackRight + '</div>';
-  }
-
-  // 物流追踪分析：延误率 / 货损率 / 区域瓶颈
-  function renderLogTrackSummary(pjId) {
-    var log = Store.getLogistics(pjId);
-    var shipments = log.shipments || [];
-    var arrived = shipments.filter(function(s){ return s.status === 'arrived'; });
-    var intransit = shipments.filter(function(s){ return s.status === 'intransit' || s.status === 'shipped'; });
-    // 延误计算
-    function delayOf(s){
+    // 计算延误率 / 货损率 / 到货率（轨道右栏与汇总分析共用）
+    var _arrived = shipments.filter(function(s){ return s.status === 'arrived'; });
+    var _intransit = shipments.filter(function(s){ return s.status === 'intransit' || s.status === 'shipped'; });
+    function _delayOf(s){
       var base = s.arrive || s.actualShip;
       if (!base || !s.planShip) return 0;
       var d1 = Date.parse(s.planShip), d2 = Date.parse(base);
       if (isNaN(d1) || isNaN(d2)) return 0;
       return Math.max(0, Math.round((d2 - d1) / 86400000));
     }
-    var delayed = shipments.filter(function(s){ return delayOf(s) > 0; });
-    var delayRate = shipments.length ? Math.round(delayed.length / shipments.length * 100) : 0;
-    var avgDamage = shipments.length ? (shipments.reduce(function(s,x){ return s + (parseFloat(x.damageRate)||0); }, 0) / shipments.length) : 0;
+    var _delayed = shipments.filter(function(s){ return _delayOf(s) > 0; });
+    var _delayRate = shipments.length ? Math.round(_delayed.length / shipments.length * 100) : 0;
+    var _avgDamage = shipments.length ? (shipments.reduce(function(s,x){ return s + (parseFloat(x.damageRate)||0); }, 0) / shipments.length) : 0;
+    // 右栏：决策分析卡（KPI + 区域瓶颈，参照质量分析报表样式）
+    var trackRight = '<div style="display:flex;flex-direction:column;gap:12px;">'
+      + '<div class="card"><div class="card-header">📋 批次管理与交付协同</div><div class="card-body">'
+      + '<div class="quality-kpi-row">'
+      + qualityKpiCard('总批次', shipments.length + ' 批', cabinetCount + ' 柜', 'info')
+      + qualityKpiCard('在途/已到货', _intransit.length + '/' + _arrived.length, shipments.length ? Math.round(_arrived.length/shipments.length*100)+'% 到货率' : '—', _arrived.length===shipments.length?'good':'neutral')
+      + qualityKpiCard('延误预警', _delayed.length + ' 批', _delayRate + '%', _delayRate>=25?'bad':_delayRate>=10?'warn':'good')
+      + qualityKpiCard('平均货损', _avgDamage.toFixed(1) + '%', _avgDamage>=3?'需关注':'正常', _avgDamage>=3?'warn':_avgDamage>=1?'warn':'good')
+      + '</div></div></div>'
+      + '<div id="logTrackSummary">' + renderLogTrackSummary(pjId, shipments, _arrived, _intransit, _delayed, _delayRate, _avgDamage) + '</div>'
+      + '</div>';
+    return '<div style="display:grid;grid-template-columns:65% 1fr;gap:16px;">' + trackLeft + trackRight + '</div>';
+  }
+
+  // 物流追踪分析：延误率 / 货损率 / 区域瓶颈
+  function renderLogTrackSummary(pjId, shipments, arrived, intransit, delayed, delayRate, avgDamage) {
     // 区域延误聚合
     var regionMap = {};
-    shipments.forEach(function(s){ var r = s.region || '未标注'; if (!regionMap[r]) regionMap[r] = {total:0, delayed:0, damage:0}; regionMap[r].total++; if (delayOf(s)>0) regionMap[r].delayed++; regionMap[r].damage += (parseFloat(s.damageRate)||0); });
+    shipments.forEach(function(s){ var r = s.region || '未标注'; if (!regionMap[r]) regionMap[r] = {total:0, delayed:0, damage:0}; regionMap[r].total++; if (_delayOf(s)>0) regionMap[r].delayed++; regionMap[r].damage += (parseFloat(s.damageRate)||0); });
     var regionRows = Object.keys(regionMap).map(function(r){
       var m = regionMap[r];
       var dr = m.total ? Math.round(m.delayed / m.total * 100) : 0;
       var ad = m.total ? (m.damage / m.total).toFixed(1) : '0.0';
-      var tone = dr>=50?'kpi-bad':dr>=25?'kpi-warn':'kpi-good';
       return '<tr><td>'+r+'</td><td>'+m.total+'</td><td><span class="badge '+(dr>=50?'badge-danger':dr>=25?'badge-warning':'badge-info')+'">'+dr+'%</span></td><td>'+ad+'%</td></tr>';
     }).join('');
-    var kpi = '<div class="quality-kpi-row">'
-      + qualityKpiCard('在途/已到货', intransit.length + '/' + arrived.length, '批次', 'neutral')
-      + qualityKpiCard('延误率', delayRate + '%', delayed.length + ' 批延误', delayRate>=25?'bad':delayRate>=10?'warn':'good')
-      + qualityKpiCard('平均货损率', avgDamage.toFixed(1) + '%', '全批次均值', avgDamage>=3?'bad':avgDamage>=1?'warn':'good')
-      + '</div>';
     var regionHTML = '<div class="card"><div class="card-header">🌍 区域延误率 / 货损率（瓶颈识别）</div><div class="card-body scrollable" style="max-height:200px;overflow:auto;">'
       + (Object.keys(regionMap).length ? '<table class="delivery-table"><thead><tr><th>区域</th><th>批次数</th><th>延误率</th><th>平均货损率</th></tr></thead><tbody>'+regionRows+'</tbody></table>'
         : '<div style="padding:16px;text-align:center;color:var(--c-gray-400);">暂无区域数据</div>')
       + '</div></div>';
-    return kpi + regionHTML;
+    return regionHTML;
   }
 
   function addShipment() {
@@ -1440,6 +1466,91 @@ const App = (function() {
       '</div>';
   }
 
+  // ========== 6.10 报告备查专用面板 ==========
+  function _sat10Key(pid, rt) { return 'ess_sat10rpt_' + pid + '_' + rt.replace(/[^a-zA-Z\u4e00-\u9fa5]/g,''); }
+  function _sat10Get(pid, rt) {
+    try { var d = localStorage.getItem(_sat10Key(pid, rt)); return d ? JSON.parse(d) : []; }
+    catch(e) { return []; }
+  }
+  function _sat10Save(pid, rt, arr) {
+    try { localStorage.setItem(_sat10Key(pid, rt), JSON.stringify(arr)); } catch(e) {}
+  }
+
+  function renderSAT10ReportPanel() {
+    var reportTypes = ['型式试验报告','FAT报告','SAT报告','其它相关报告'];
+    var reportHTML = reportTypes.map(function(rt){
+      return '<div class="card" style="margin-bottom:10px;">'
+        + '<div class="card-header" style="display:flex;align-items:center;gap:8px;">📄 ' + rt
+        + '<button class="btn btn-sm btn-outline" style="margin-left:auto;" onclick="App.addSAT10Report(\''+rt+'\')">+ 添加</button>'
+        + '</div>'
+        + '<div class="card-body"><table class="delivery-table"><thead><tr>'
+        + '<th style="width:26px;">#</th><th>报告名称</th><th>报告编号</th><th>出具机构</th><th>有效期至</th><th>状态</th><th style="width:50px;"></th>'
+        + '</tr></thead><tbody id="sat10-body-'+rt.replace(/[^a-zA-Z\u4e00-\u9fa5]/g,'')+'"></tbody></table></div></div>';
+    }).join('');
+    return '<div class="sub-tab-panel" data-panel="sat-10">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;color:var(--c-gray-600);">'
+      + '<span>⏱ 标准工时: 1h | 🔄 可并行 | 📄 按报告类型分类汇总 · 支持增行/删减</span>'
+      + '</div>'
+      + reportHTML
+      + '</div>';
+  }
+
+  function renderSAT10ReportTableBody(rt) {
+    var p = Store.getSelectedProject();
+    if (!p) return '<tr><td colspan="7" style="text-align:center;color:var(--c-gray-400);">请先选择项目</td></tr>';
+    var rows = _sat10Get(p.id, rt);
+    if (!rows.length) return '<tr><td colspan="7" style="text-align:center;color:var(--c-gray-400);">暂无记录，点击「+ 添加」</td></tr>';
+    return rows.map(function(r,i){
+      return '<tr><td>'+(i+1)+'</td>'
+        + '<td><input class="inline-input" style="width:140px;" value="'+(r.name||'')+'" onchange="App.updateSAT10Report(\''+rt+'\','+i+',\'name\',this.value)"></td>'
+        + '<td><input class="inline-input" style="width:110px;" value="'+(r.code||'')+'" onchange="App.updateSAT10Report(\''+rt+'\','+i+',\'code\',this.value)"></td>'
+        + '<td><input class="inline-input" style="width:100px;" value="'+(r.org||'')+'" onchange="App.updateSAT10Report(\''+rt+'\','+i+',\'org\',this.value)"></td>'
+        + '<td><input class="inline-input" style="width:100px;" type="date" value="'+(r.expiry||'')+'" onchange="App.updateSAT10Report(\''+rt+'\','+i+',\'expiry\',this.value)"></td>'
+        + '<td><select class="inline-input" style="width:72px;" onchange="App.updateSAT10Report(\''+rt+'\','+i+',\'status\',this.value)">'
+        + '<option value="valid"'+(r.status==='valid'?' selected':'')+'>有效</option>'
+        + '<option value="expiring"'+(r.status==='expiring'?' selected':'')+'>临期</option>'
+        + '<option value="expired"'+(r.status==='expired'?' selected':'')+'>过期</option>'
+        + '<option value="pending"'+(r.status==='pending'?' selected':'')+'>待获取</option>'
+        + '</select></td>'
+        + '<td><button class="btn btn-sm btn-outline" onclick="App.delSAT10Report(\''+rt+'\','+i+')">×</button></td></tr>';
+    }).join('');
+  }
+
+  function refreshSAT10ReportTables() {
+    var reportTypes = ['型式试验报告','FAT报告','SAT报告','其它相关报告'];
+    reportTypes.forEach(function(rt){
+      var body = document.getElementById('sat10-body-'+rt.replace(/[^a-zA-Z\u4e00-\u9fa5]/g,''));
+      if (body) body.innerHTML = renderSAT10ReportTableBody(rt);
+    });
+  }
+
+  function addSAT10Report(rt) {
+    var p = Store.getSelectedProject();
+    if (!p) return;
+    var rows = _sat10Get(p.id, rt);
+    rows.push({name:'',code:'',org:'',expiry:'',status:'pending'});
+    _sat10Save(p.id, rt, rows);
+    refreshSAT10ReportTables();
+  }
+
+  function delSAT10Report(rt, idx) {
+    var p = Store.getSelectedProject();
+    if (!p) return;
+    var rows = _sat10Get(p.id, rt);
+    rows.splice(idx, 1);
+    _sat10Save(p.id, rt, rows);
+    refreshSAT10ReportTables();
+  }
+
+  function updateSAT10Report(rt, idx, field, val) {
+    var p = Store.getSelectedProject();
+    if (!p) return;
+    var rows = _sat10Get(p.id, rt);
+    if (!rows[idx]) return;
+    rows[idx][field] = val;
+    _sat10Save(p.id, rt, rows);
+  }
+
   // ========== Tab 6: 系统调试（完整版·SAT-SOP内置）==========
   function renderCommissionTab() {
     const sop = Store.getSatSOP();
@@ -1457,6 +1568,8 @@ const App = (function() {
     }
     
     let subTabContents = phases.map(phase => {
+      // sat-10(6.10报告备查)专用渲染：分类汇总型式试验/FAT/SAT/其它报告
+      if (phase.id === 'sat-10') return renderSAT10ReportPanel();
       const itemHeader = phase.sortOrder === 1 ? '检查项目' : '测试项目';
       var allChecks = getMergedChecks('sat', phase);
       return `
@@ -5100,6 +5213,7 @@ const App = (function() {
     switchRdPhase,toggleRDSelectAll,onRDCheck,initRDCheckState,updateRndOverallProgress,toggleRDAllCompleted,initRDAllCompletedState,
     toggleInstallAllCompleted,initInstallAllCompletedState,updateInstallOverallProgress,
     toggleSATAllPassed,initSATAllPassedState,updateSATOverallProgress,
+    addSAT10Report,delSAT10Report,updateSAT10Report,refreshSAT10ReportTables,
     toggleMfgAllCompleted,initMfgAllCompletedState,
     refreshInstallRiskCard,refreshCommissionRiskCard,refreshMfgRiskCard,
     onProgressCheck, toggleSelectAll,

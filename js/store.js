@@ -116,7 +116,7 @@ const Store = (function() {
   "phases": [
     {
       "id": "sat-1",
-      "name": "调试准备及安全前置",
+      "name": "6.1调试准备",
       "sortOrder": 1,
       "standardHours": "1.5h",
       "canParallel": true,
@@ -169,7 +169,7 @@ const Store = (function() {
     },
     {
       "id": "sat-2",
-      "name": "设备外观与线束连接检查",
+      "name": "6.2设备外观与线束检查",
       "sortOrder": 2,
       "standardHours": "1h",
       "canParallel": true,
@@ -277,7 +277,7 @@ const Store = (function() {
     },
     {
       "id": "sat-3",
-      "name": "全系统绝缘检测",
+      "name": "6.3全系统绝缘检测",
       "sortOrder": 3,
       "standardHours": "2h",
       "canParallel": true,
@@ -341,7 +341,7 @@ const Store = (function() {
     },
     {
       "id": "sat-4",
-      "name": "软件升级与系统配置",
+      "name": "6.4软件升级与系统配置",
       "sortOrder": 4,
       "standardHours": "2.5h",
       "canParallel": true,
@@ -427,7 +427,7 @@ const Store = (function() {
     },
     {
       "id": "sat-5",
-      "name": "低压系统调试",
+      "name": "6.5低压系统调试",
       "sortOrder": 5,
       "standardHours": "2h",
       "canParallel": false,
@@ -502,7 +502,7 @@ const Store = (function() {
     },
     {
       "id": "sat-6",
-      "name": "高压系统调试",
+      "name": "6.6高压系统调试",
       "sortOrder": 6,
       "standardHours": "2.5h",
       "canParallel": false,
@@ -588,7 +588,7 @@ const Store = (function() {
     },
     {
       "id": "sat-7",
-      "name": "充放电性能测试",
+      "name": "6.7充放电测试",
       "sortOrder": 7,
       "standardHours": "8.5h",
       "canParallel": false,
@@ -663,7 +663,7 @@ const Store = (function() {
     },
     {
       "id": "sat-8",
-      "name": "并网与系统联动测试",
+      "name": "6.8并网与系统联调",
       "sortOrder": 8,
       "standardHours": "4h",
       "canParallel": false,
@@ -749,7 +749,7 @@ const Store = (function() {
     },
     {
       "id": "sat-9",
-      "name": "SAT验收测试与偏差整改",
+      "name": "6.9验收与偏差整改",
       "sortOrder": 9,
       "standardHours": "4h",
       "canParallel": false,
@@ -901,7 +901,7 @@ const Store = (function() {
     },
     {
       "id": "sat-10",
-      "name": "型式试验报告备查",
+      "name": "6.10报告备查",
       "sortOrder": 10,
       "standardHours": "0.5h",
       "canParallel": true,

@@ -763,22 +763,26 @@ body {
 .iqc-table th, .qc-table th,
 .iqc-table td, .qc-table td {
   padding: 6px 8px;
+  white-space: nowrap;
 }
 .iqc-table th:first-child, .qc-table th:first-child {
   width: 36px;
   text-align: center;
 }
 .iqc-table th:nth-child(2), .qc-table th:nth-child(2) {
-  min-width: 180px;
+  min-width: 60px;
 }
 .iqc-table th:nth-child(3), .qc-table th:nth-child(3) {
-  min-width: 160px;
+  min-width: 240px;
 }
 .iqc-table th:nth-child(4), .qc-table th:nth-child(4) {
-  min-width: 140px;
+  min-width: 80px;
 }
 .iqc-table th:nth-child(5), .qc-table th:nth-child(5) {
-  min-width: 60px;
+  min-width: 100px;
+}
+.iqc-table th:nth-child(6), .qc-table th:nth-child(6) {
+  min-width: 90px;
 }
 
 /* 批次跟踪页 - 复选框 */
@@ -1258,6 +1262,17 @@ body {
 .doc-stat { margin-top:10px; font-size:12px; color:#94a3b8; }
 .doc-text-preview { background:#0f172a; color:#e2e8f0; padding:16px; border-radius:8px; max-height:70vh; overflow:auto; font-family:Consolas,monospace; font-size:13px; white-space:pre-wrap; }
 .empty-tip { padding:24px; text-align:center; color:var(--c-gray-400); font-size:13px; }
+
+/* ===== 质量管控 KPI 卡（质量分析报表/物流分析 共享） ===== */
+.quality-kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; }
+.quality-kpi-card { background:#fff; border:1px solid var(--c-gray-200); border-left:3px solid var(--c-gray-300); border-radius:8px; padding:10px 12px; }
+.quality-kpi-card .qk-title { font-size:11px; color:#64748b; }
+.quality-kpi-card .qk-val { font-size:20px; font-weight:700; color:#0f172a; margin:2px 0 1px; }
+.quality-kpi-card .qk-sub { font-size:10px; color:#94a3b8; }
+.quality-kpi-card.kpi-good { border-left-color:#16a34a; } .quality-kpi-card.kpi-good .qk-val { color:#16a34a; }
+.quality-kpi-card.kpi-warn { border-left-color:#f59e0b; } .quality-kpi-card.kpi-warn .qk-val { color:#d97706; }
+.quality-kpi-card.kpi-bad { border-left-color:#dc2626; } .quality-kpi-card.kpi-bad .qk-val { color:#dc2626; }
+.quality-kpi-card.kpi-neutral { border-left-color:#2563eb; } .quality-kpi-card.kpi-neutral .qk-val { color:#2563eb; }
 
 /* 响应式 */
 @media (max-width: 900px) {
