@@ -2330,7 +2330,7 @@ const App = (function() {
     var payload={ title:exam.title, difficulty:exam.difficulty, questions:exam.questions.map(function(q){return {type:q.type,q:q.q,options:q.options,points:q.points,answer:q.answer};}) };
     var enc = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
     var base = location.origin + location.pathname.replace(/index\.html$/,'');
-    var link = base + 'exam.html?e=' + enc;
+    var link = base + 'exam.html?e=' + encodeURIComponent(enc);
     var qr = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(link);
     var body = '<div class="tr-share">'
       + '<div class="tr-share-qr"><img src="'+qr+'" alt="二维码" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.tr-share-link-text\').style.display=\'block\';"><div class="tr-share-link-text" style="display:none;word-break:break-all">'+trEsc(link)+'</div></div>'
@@ -2348,7 +2348,7 @@ const App = (function() {
   function copyText(id){ var el=document.getElementById(id); if(el){ el.select(); try{ document.execCommand('copy'); App.toast('已复制链接','success'); }catch(e){ App.toast('复制失败，请手动复制','warn'); } } }
   function copyShare(platform, enc){
     var base = location.origin + location.pathname.replace(/index\.html$/,'');
-    var link = base + 'exam.html?e=' + enc;
+    var link = base + 'exam.html?e=' + encodeURIComponent(enc);
     var map={wechat:'微信',qq:'QQ',wecom:'企业微信',feishu:'飞书'};
     var text='【'+(map[platform]||'同事')+'】储能培训考试，请点击链接作答：'+link;
     copyToClipboard(text); App.toast('已复制'+(map[platform]||'')+'分享文案','success');
